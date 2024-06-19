@@ -26,7 +26,8 @@ public class BuildCmd
     [MenuItem("Build/Build Android")]
     static void BuildAndroid()
     {
-        var data = GetDataModel<BuildAndroidInformation>();
+        var filePath = CommonServices.GetPathBuildInformation();
+        var data     = CommonServices.GetDataModel<BuildAndroidInformation>(filePath);
 
         if (data == null)
         {
@@ -56,21 +57,6 @@ public class BuildCmd
     static void BuildWebGL()
     {
         // var data = GetDataModel();
-    }
-
-    private static T GetDataModel<T>() where T : class
-    {
-        T data = null;
-
-        var filePath = Application.dataPath;
-        filePath = filePath.Replace("Assets", "");
-        filePath = $"{filePath}/BuildInformation.json";
-        var fileContents = File.ReadAllText(filePath, Encoding.UTF8);
-        fileContents = fileContents.Replace("\n", "").Replace("\r", "");
-
-        data = JsonUtility.FromJson<T>(fileContents);
-
-        return data;
     }
 
     private static readonly List<BuildTargetInfo> Targets = new()

@@ -12,21 +12,53 @@ public class GoogleDriverServices
     static string ApkFile = "application/vnd.android.package-archive";
 
     [MenuItem("Build/UploadFile")]
-    static void TestUpload() { UploadFile("E:/ABS.txt", "1q0oGNCVdiegiGhrg27fPNNfwNaxesEfW", "text/plain"); }
+    static void TestUpload() { UploadAndroidPlatform(); }
 
-    static string UploadFile(string filePath, string folderId, string contentType)
+    static string GetBuildFilePath()
     {
+        var path  = Application.dataPath;
+        var tmp   = path.Split('/');
+        var final = "";
+
+        for (int i = 0; i < tmp.Length - 2; i++)
+        {
+            final += tmp[i] + "/";
+        }
+
+        return $"{final}Build/";
+    }
+
+    static void UploadAndroidPlatform()
+    {
+        var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation());
+
+        var path = Application.dataPath;
+
+        var apkFilePath =
+            $"{GetBuildFilePath()}Client/Android/{buildAndroidInformation.androidInformation.outputFileName}.apk";
+
+        if (!File.Exists(apkFilePath))
+        {
+            throw new Exception("Apk File not found");
+        }
+
+        var contentType = ApkFile;
+
+        var uploadInfo = path.Replace("Assets", "");
+        //read from file
+        var folderId = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+
         var service = GetService();
 
         var fileMetadata = new Google.Apis.Drive.v3.Data.File()
         {
-            Name    = Path.GetFileName(filePath),
+            Name    = Path.GetFileName(apkFilePath),
             Parents = new List<string> { folderId }
         };
 
         FilesResource.CreateMediaUpload request;
 
-        using (var stream = new FileStream(filePath, FileMode.Open))
+        using (var stream = new FileStream(apkFilePath, FileMode.Open))
         {
             request        = service.Files.Create(fileMetadata, stream, contentType);
             request.Fields = "id";
@@ -34,9 +66,12 @@ public class GoogleDriverServices
         }
 
         var file = request.ResponseBody;
-        Debug.Log("File ID: " + file.Id);
+        Console.WriteLine("File ID: " + file.Id);
+        var urlFile = $"https://drive.google.com/file/d/{file.Id}/view?usp=drive_link";
 
-        return file.Id;
+        var googleLinkPath = path.Replace("Assets", "");
+        googleLinkPath = $"{googleLinkPath}/googleInfo.txt";
+        File.WriteAllText(googleLinkPath, urlFile);
     }
 
     static DriveService GetService()
