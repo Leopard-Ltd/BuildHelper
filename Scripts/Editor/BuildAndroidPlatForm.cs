@@ -9,8 +9,9 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 {
     private static string bundleId = Application.identifier;
 
-    public override void SetUpAndBuild(BuildAndroidInformation data)
+    public override void SetUpAndBuild(IBuildInformation baseData)
     {
+        var data = (BuildAndroidInformation)baseData;
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         base.SetUpAndBuild(data);
         //auto profile
@@ -19,7 +20,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         var errors = false;
         EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();
         this.SetPassword(data);
-        this.SetScriptDefineSymbols(NamedBuildTarget.Android, data);
+        this.SetScriptDefineSymbols(NamedBuildTarget.Android, data.androidInformation.scriptDefinition.Split(";"));
         PlayerSettings.Android.minSdkVersion    = AndroidSdkVersions.AndroidApiLevel23;
         PlayerSettings.Android.targetSdkVersion = (AndroidSdkVersions)34;
         var il2CppCodeGeneration = data.androidInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;

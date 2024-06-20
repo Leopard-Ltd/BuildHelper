@@ -1,9 +1,14 @@
 using System;
 
 [Serializable]
-public class BuildAndroidInformation
+public class BuildAndroidInformation:IBuildInformation
 {
     public AndroidInformation androidInformation = new AndroidInformation();
+
+    public bool IsDevelopment()
+    {
+        return this.androidInformation.IsDevelopment();
+    }
 }
 
 [Serializable]

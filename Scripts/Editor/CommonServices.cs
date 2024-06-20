@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class CommonServices
 {
-    public static string GetPathBuildInformation()
+    public static string GetPathBuildInformation(string fileName)
     {
         var filePath = Application.dataPath;
         filePath = filePath.Replace("Assets", "");
-        filePath = $"{filePath}/BuildInformation.json";
+        filePath = $"{filePath}/{fileName}";
 
         return filePath;
     }

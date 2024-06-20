@@ -32,9 +32,26 @@ public class GoogleDriverServices
         return $"{final}Build/";
     }
 
+    static async void UploadWebGlPlatForm()
+    {
+        var path             = Application.dataPath;
+        var webGlInformation = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+        var zipFilePath      = $"{GetBuildFilePath()}Client/webgl/{webGlInformation.webGlInformation.outputFileName}.zip";
+        var service          = GetService();
+        var uploadInfo       = path.Replace("Assets", "");
+        //read from file
+        var folderId       = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+        var platFormFolder = CreateFolder("webgl", folderId, service);
+        var zipFile        = "";
+        await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, out zipFile);
+        var googleLinkPath = path.Replace("Assets", "");
+        googleLinkPath = $"{googleLinkPath}googleInfo.txt";
+        File.WriteAllText(googleLinkPath, zipFile);
+    }
+
     static async void UploadAndroidPlatform()
     {
-        var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation());
+        var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
 
         var path             = Application.dataPath;
         var internalFilePath = $"{GetBuildFilePath()}Client/Android/{buildAndroidInformation.androidInformation.outputFileName}";
@@ -59,8 +76,11 @@ public class GoogleDriverServices
         //read from file
         var folderId = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
 
-        //CreateNewFolder
-        var versionFolder = CreateFolder($"{buildAndroidInformation.androidInformation.outputFileName}", folderId, service);
+        //create platform folder
+        var platFormFolder = CreateFolder("Android", folderId, service);
+
+        //Create VersionFolder
+        var versionFolder = CreateFolder($"{buildAndroidInformation.androidInformation.outputFileName}", platFormFolder, service);
 
         listTask = new List<Task>();
         var urlApk  = "";
@@ -101,8 +121,7 @@ public class GoogleDriverServices
 
         if (folderToDelete != null)
         {
-            // Delete the folder
-            DeleteFolder(service, folderToDelete.Id);
+            return folderToDelete.Id;
         }
 
         var fileMetadata = new Google.Apis.Drive.v3.Data.File()
@@ -130,7 +149,7 @@ public class GoogleDriverServices
         IList<Google.Apis.Drive.v3.Data.File> files = listRequest.Execute().Files;
 
         // Check if there's exactly one match
-        return files is { Count: 1 } ? files.First() : null; 
+        return files is { Count: 1 } ? files.First() : null;
     }
 
     static void DeleteFolder(DriveService service, string folderId)

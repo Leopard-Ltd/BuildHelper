@@ -13,12 +13,12 @@ using UnityEngine;
 
 public abstract class BaseBuildPlatForm
 {
-    public virtual void SetUpAndBuild(BuildAndroidInformation data)
+    public virtual void SetUpAndBuild(IBuildInformation data)
     {
         this.ResetBuildSettings();
         this.BuildAddressable();
 
-        EditorUserBuildSettings.development = data.androidInformation.IsDevelopment();
+        EditorUserBuildSettings.development = data.IsDevelopment();
 
 #if PRODUCTION
             PlayerSettings.SetStackTraceLogType(LogType.Assert,  StackTraceLogType.None);
@@ -92,9 +92,9 @@ public abstract class BaseBuildPlatForm
 #endif
     }
 
-    protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup, BuildAndroidInformation data)
+    protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup,string [] scripts)
     {
-        var scripts = data.androidInformation.scriptDefinition.Split(";");
+      
         PlayerSettings.SetScriptingDefineSymbols(targetGroup, scripts);
     }
 
@@ -107,4 +107,5 @@ public abstract class BaseBuildPlatForm
 
         return scenes;
     }
+    
 }

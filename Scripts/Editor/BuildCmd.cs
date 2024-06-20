@@ -26,8 +26,7 @@ public class BuildCmd
     [MenuItem("Build/Build Android")]
     static void BuildAndroid()
     {
-        var filePath = CommonServices.GetPathBuildInformation();
-        var data     = CommonServices.GetDataModel<BuildAndroidInformation>(filePath);
+        var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
 
         if (data == null)
         {
@@ -54,9 +53,30 @@ public class BuildCmd
         // var data = GetDataModel();
     }
 
+    [MenuItem("Build/Build WebGl")]
     static void BuildWebGL()
     {
-        // var data = GetDataModel();
+        var data = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+
+        if (data == null)
+        {
+            Console.WriteLine("No data model found");
+
+            throw new Exception("No data model found");
+        }
+
+        try
+        {
+            var buildWebGlPlatForm = new BuildWebGlPlatForm();
+
+            buildWebGlPlatForm.SetUpAndBuild(data);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+
+            throw;
+        }
     }
 
     private static readonly List<BuildTargetInfo> Targets = new()
