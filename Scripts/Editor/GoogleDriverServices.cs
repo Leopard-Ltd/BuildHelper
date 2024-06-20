@@ -41,7 +41,7 @@ public class GoogleDriverServices
         var uploadInfo       = path.Replace("Assets", "");
         //read from file
         var folderId       = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-        var platFormFolder = CreateFolder("webgl", folderId, service);
+        var platFormFolder =await CreateFolder("webgl", folderId, service);
         var zipFile        = "";
         await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, out zipFile);
         var googleLinkPath = path.Replace("Assets", "");
@@ -75,12 +75,12 @@ public class GoogleDriverServices
         var uploadInfo = path.Replace("Assets", "");
         //read from file
         var folderId = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-
+        folderId = "1atBhlaPxz5j6vNzh9-Wu2XCrcC71fBAx";
         //create platform folder
-        var platFormFolder = CreateFolder("Android", folderId, service);
+        var platFormFolder = await CreateFolder("Android", folderId, service);
 
         //Create VersionFolder
-        var versionFolder = CreateFolder($"{buildAndroidInformation.androidInformation.outputFileName}", platFormFolder, service);
+        var versionFolder = await CreateFolder($"{buildAndroidInformation.androidInformation.outputFileName}", platFormFolder, service);
 
         listTask = new List<Task>();
         var urlApk  = "";
@@ -115,9 +115,9 @@ public class GoogleDriverServices
         File.WriteAllText(googleLinkPath, string.Join(",", list));
     }
 
-    static string CreateFolder(string folderName, string parentFolder, DriveService service)
+    static async Task<string> CreateFolder(string folderName, string parentFolder, DriveService service)
     {
-        var folderToDelete = FindFolder(service, folderName);
+        var folderToDelete = FindFolder(service, parentFolder, folderName);
 
         if (folderToDelete != null)
         {
@@ -132,24 +132,28 @@ public class GoogleDriverServices
         };
 
         var request = service.Files.Create(fileMetadata);
-        request.Fields = "id";
-        var file = request.Execute();
+        request.SupportsAllDrives = true;
+        request.Fields            = "id";
+        var file = await request.ExecuteAsync();
         Console.WriteLine("Folder ID: " + file.Id);
 
         return file.Id;
     }
 
-    static Google.Apis.Drive.v3.Data.File FindFolder(DriveService service, string folderName)
+    static Google.Apis.Drive.v3.Data.File FindFolder(DriveService service, string parentFolder, string folderName)
     {
         // Define parameters for the Files.List request
         var listRequest = service.Files.List();
-        listRequest.Q = $"mimeType='application/vnd.google-apps.folder' and name='{folderName}' and trashed=false";
-
+        listRequest.Q                 = $"mimeType = 'application/vnd.google-apps.folder' and name = '{folderName}' and '{parentFolder}' in parents and trashed = false";
+        listRequest.PageSize          = 100;
+        listRequest.Fields                    = "nextPageToken, files(id, name)";
+        listRequest.SupportsAllDrives         = true;
+        listRequest.IncludeItemsFromAllDrives = true;
         // Execute the request and get the list of files
         IList<Google.Apis.Drive.v3.Data.File> files = listRequest.Execute().Files;
 
         // Check if there's exactly one match
-        return files is { Count: 1 } ? files.First() : null;
+        return files.FirstOrDefault();
     }
 
     static void DeleteFolder(DriveService service, string folderId)
@@ -170,8 +174,9 @@ public class GoogleDriverServices
 
         using (var stream = new FileStream(apkFilePath, FileMode.Open))
         {
-            request        = service.Files.Create(fileMetadata, stream, contentType);
-            request.Fields = "id";
+            request                   = service.Files.Create(fileMetadata, stream, contentType);
+            request.Fields            = "id";
+            request.SupportsAllDrives = true;
             request.Upload();
         }
 

@@ -17,6 +17,11 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         //auto profile
         EditorUserBuildSettings.connectProfiler = data.androidInformation.IsDevelopment();
 
+        if (!string.IsNullOrEmpty(data.androidInformation.bundleIdentifier))
+        {
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, data.androidInformation.bundleIdentifier);
+        }
+
         var errors = false;
         EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();
         this.SetPassword(data);

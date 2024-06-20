@@ -1,14 +1,11 @@
 using System;
 
 [Serializable]
-public class BuildAndroidInformation:IBuildInformation
+public class BuildAndroidInformation : IBuildInformation
 {
     public AndroidInformation androidInformation = new AndroidInformation();
 
-    public bool IsDevelopment()
-    {
-        return this.androidInformation.IsDevelopment();
-    }
+    public bool IsDevelopment() { return this.androidInformation.IsDevelopment(); }
 }
 
 [Serializable]
@@ -25,6 +22,7 @@ public class AndroidInformation
     public CustomVersion customVersion      = new CustomVersion();
     public string        optimizeSizeBuild  = "false";
     public string        isBuildDevelopment = "false";
+    public string        bundleIdentifier   = "";
 
     public bool BuildAppBundle() { return this.buildAppBundle.Equals("true"); }
 
