@@ -95,7 +95,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
     {
         var filePath = $"{data.androidInformation.keyName}";
         var dPath    = Application.dataPath;
-        dPath = dPath.Replace("Assets", "");
+        dPath = dPath.Replace("Assets", "keys/");
         dPath = $"{dPath}{filePath}";
 
         var finalPath = dPath;

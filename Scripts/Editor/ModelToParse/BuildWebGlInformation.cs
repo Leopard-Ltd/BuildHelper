@@ -13,8 +13,8 @@ public class WebGlInformation
     public string outputFileName     = "output";
     public string optimizeSizeBuild  = "false";
     public string isBuildDevelopment = "false";
-
-    public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
+    public string buildEnvironment   = "Dev";
+    public bool   OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
     public bool IsDevelopment() { return this.isBuildDevelopment.Equals("true"); }
 }

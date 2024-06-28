@@ -41,8 +41,10 @@ public class GoogleDriverServices
         var uploadInfo       = path.Replace("Assets", "");
         //read from file
         var folderId       = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-        var platFormFolder =await CreateFolder("webgl", folderId, service);
-        var zipFile        = "";
+        
+        var environmentFolder = await CreateFolder(webGlInformation.webGlInformation.buildEnvironment, folderId, service);
+        var platFormFolder    =await CreateFolder("webgl", environmentFolder, service);
+        var zipFile           = "";
         await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, out zipFile);
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
@@ -75,9 +77,12 @@ public class GoogleDriverServices
         var uploadInfo = path.Replace("Assets", "");
         //read from file
         var folderId = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-        folderId = "1atBhlaPxz5j6vNzh9-Wu2XCrcC71fBAx";
+        
+        //BuildEnvironment
+        var environmentFolder = await CreateFolder(buildAndroidInformation.androidInformation.buildEnvironment, folderId, service);
+        
         //create platform folder
-        var platFormFolder = await CreateFolder("Android", folderId, service);
+        var platFormFolder = await CreateFolder("Android", environmentFolder, service);
 
         //Create VersionFolder
         var versionFolder = await CreateFolder($"{buildAndroidInformation.androidInformation.outputFileName}", platFormFolder, service);

@@ -23,6 +23,7 @@ public class AndroidInformation
     public string        optimizeSizeBuild  = "false";
     public string        isBuildDevelopment = "false";
     public string        bundleIdentifier   = "";
+    public string        buildEnvironment   = "Dev";
 
     public bool BuildAppBundle() { return this.buildAppBundle.Equals("true"); }
 
