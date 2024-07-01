@@ -49,6 +49,7 @@ public class GoogleDriverServices
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
         File.WriteAllText(googleLinkPath, zipFile);
+        EditorApplication.Exit(0);
     }
 
     static async void UploadAndroidPlatform()
@@ -118,6 +119,7 @@ public class GoogleDriverServices
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
         File.WriteAllText(googleLinkPath, string.Join(",", list));
+        EditorApplication.Exit(0);
     }
 
     static async Task<string> CreateFolder(string folderName, string parentFolder, DriveService service)

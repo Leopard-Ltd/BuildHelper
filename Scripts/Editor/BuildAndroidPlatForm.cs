@@ -30,23 +30,32 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.targetSdkVersion = (AndroidSdkVersions)34;
         var il2CppCodeGeneration = data.androidInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Android, il2CppCodeGeneration);
-
-        var buildPlayerOptions = new BuildPlayerOptions
-        {
-            scenes           = this.LoadSceneOnPath(),
-            target           = BuildTarget.Android,
-            options          = BuildOptions.None,
-            locationPathName = this.GetBuildPath(data.androidInformation.outputFileName, data.androidInformation.BuildAppBundle()),
-            targetGroup      = BuildTargetGroup.Android
-        };
-
-        PlayerSettings.SetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(buildPlayerOptions.targetGroup), ScriptingImplementation.IL2CPP);
-        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
+        var outputFileName = data.androidInformation.outputFileName;
 
         if (data.androidInformation.customVersion.IsCustomVersion())
         {
             PlayerSettings.bundleVersion = data.androidInformation.customVersion.version;
         }
+        else
+        {
+            var tmp            = outputFileName.Split("-");
+            tmp[1]         = PlayerSettings.bundleVersion;
+            outputFileName = string.Join("-", tmp);
+        }
+        var dPath    = Application.dataPath;
+        dPath = dPath.Replace("Assets", "buildversion.txt");
+        File.WriteAllText(dPath, PlayerSettings.bundleVersion);
+        var buildPlayerOptions = new BuildPlayerOptions
+        {
+            scenes           = this.LoadSceneOnPath(),
+            target           = BuildTarget.Android,
+            options          = BuildOptions.None,
+            locationPathName = this.GetBuildPath(outputFileName, data.androidInformation.BuildAppBundle()),
+            targetGroup      = BuildTargetGroup.Android
+        };
+
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(buildPlayerOptions.targetGroup), ScriptingImplementation.IL2CPP);
+        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
 
 #if UNITY_6000_0_OR_NEWER
           UnityEditor.Android.UserBuildSettings.DebugSymbols.level = data.androidInformation.BuildAppBundle() ? Unity.Android.Types.DebugSymbolLevel.Full : Unity.Android.Types.DebugSymbolLevel.None;
