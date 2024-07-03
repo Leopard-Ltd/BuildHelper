@@ -19,12 +19,6 @@ public abstract class BaseBuildPlatForm
         this.BuildAddressable();
 
         EditorUserBuildSettings.development = data.IsDevelopment();
-
-#if PRODUCTION
-            PlayerSettings.SetStackTraceLogType(LogType.Assert,  StackTraceLogType.None);
-            PlayerSettings.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
-            PlayerSettings.SetStackTraceLogType(LogType.Log,     StackTraceLogType.None);
-#endif
     }
 
     private void ResetBuildSettings()
