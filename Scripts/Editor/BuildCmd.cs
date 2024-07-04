@@ -39,7 +39,12 @@ public class BuildCmd
         {
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
             buildAndroidPlatForm.SetUpAndBuild(data);
-            EditorApplication.Exit(0);
+            var agrs = Environment.GetCommandLineArgs().ToList();
+
+            if (agrs.Contains("batchmode"))
+            {
+                EditorApplication.Exit(0);
+            }
         }
         catch (Exception e)
         {
@@ -71,7 +76,12 @@ public class BuildCmd
             var buildWebGlPlatForm = new BuildWebGlPlatForm();
 
             buildWebGlPlatForm.SetUpAndBuild(data);
-            EditorApplication.Exit(0);
+            var agrs = Environment.GetCommandLineArgs().ToList();
+
+            if (agrs.Contains("batchmode"))
+            {
+                EditorApplication.Exit(0);
+            }
         }
         catch (Exception e)
         {
