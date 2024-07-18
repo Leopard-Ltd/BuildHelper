@@ -8,6 +8,7 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using UnityEditor;
 using UnityEngine;
+using File = Google.Apis.Drive.v3.Data.File;
 
 public class GoogleDriverServices
 {
@@ -40,15 +41,15 @@ public class GoogleDriverServices
         var service          = GetService();
         var uploadInfo       = path.Replace("Assets", "");
         //read from file
-        var folderId       = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-        
+        var folderId = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+
         var environmentFolder = await CreateFolder(webGlInformation.webGlInformation.buildEnvironment, folderId, service);
-        var platFormFolder    =await CreateFolder("webgl", environmentFolder, service);
+        var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
         var zipFile           = "";
         await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, out zipFile);
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
-        File.WriteAllText(googleLinkPath, zipFile);
+        System.IO.File.WriteAllText(googleLinkPath, zipFile);
         EditorApplication.Exit(0);
     }
 
@@ -63,12 +64,12 @@ public class GoogleDriverServices
         var aabFilePath = $"{internalFilePath}.aab";
         var zipFilePath = $"{internalFilePath}-{buildAndroidInformation.androidInformation.customVersion.version}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
 
-        if (!File.Exists(apkFilePath))
+        if (!System.IO.File.Exists(apkFilePath))
         {
             throw new Exception("Apk File not found");
         }
 
-        if (!File.Exists(aabFilePath) && buildAndroidInformation.androidInformation.BuildAppBundle())
+        if (!System.IO.File.Exists(aabFilePath) && buildAndroidInformation.androidInformation.BuildAppBundle())
         {
             throw new Exception("Aab File not found");
         }
@@ -77,11 +78,11 @@ public class GoogleDriverServices
 
         var uploadInfo = path.Replace("Assets", "");
         //read from file
-        var folderId = File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-        
+        var folderId = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+
         //BuildEnvironment
         var environmentFolder = await CreateFolder(buildAndroidInformation.androidInformation.buildEnvironment, folderId, service);
-        
+
         //create platform folder
         var platFormFolder = await CreateFolder("Android", environmentFolder, service);
 
@@ -118,7 +119,7 @@ public class GoogleDriverServices
 
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
-        File.WriteAllText(googleLinkPath, string.Join(",", list));
+        System.IO.File.WriteAllText(googleLinkPath, string.Join(",", list));
         EditorApplication.Exit(0);
     }
 
@@ -131,7 +132,7 @@ public class GoogleDriverServices
             return folderToDelete.Id;
         }
 
-        var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+        var fileMetadata = new File()
         {
             Name     = folderName,
             MimeType = "application/vnd.google-apps.folder",
@@ -147,17 +148,17 @@ public class GoogleDriverServices
         return file.Id;
     }
 
-    static Google.Apis.Drive.v3.Data.File FindFolder(DriveService service, string parentFolder, string folderName)
+    static File FindFolder(DriveService service, string parentFolder, string folderName)
     {
         // Define parameters for the Files.List request
         var listRequest = service.Files.List();
-        listRequest.Q                 = $"mimeType = 'application/vnd.google-apps.folder' and name = '{folderName}' and '{parentFolder}' in parents and trashed = false";
-        listRequest.PageSize          = 100;
+        listRequest.Q                         = $"mimeType = 'application/vnd.google-apps.folder' and name = '{folderName}' and '{parentFolder}' in parents and trashed = false";
+        listRequest.PageSize                  = 100;
         listRequest.Fields                    = "nextPageToken, files(id, name)";
         listRequest.SupportsAllDrives         = true;
         listRequest.IncludeItemsFromAllDrives = true;
         // Execute the request and get the list of files
-        IList<Google.Apis.Drive.v3.Data.File> files = listRequest.Execute().Files;
+        IList<File> files = listRequest.Execute().Files;
 
         // Check if there's exactly one match
         return files.FirstOrDefault();
@@ -171,7 +172,7 @@ public class GoogleDriverServices
 
     private static Task UploadFileInternal(string apkFilePath, string folderId, DriveService service, string contentType, out string driverLink)
     {
-        var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+        var fileMetadata = new File()
         {
             Name    = Path.GetFileName(apkFilePath),
             Parents = new List<string> { folderId }
@@ -188,7 +189,7 @@ public class GoogleDriverServices
         }
 
         var file    = request.ResponseBody;
-        var urlFile = $"https://drive.google.com/file/d/{file.Id}/view?usp=drive_link";
+        var urlFile = $"https://drive.google.com/uc?export=download&id={file.Id}";
         driverLink = urlFile;
 
         return Task.CompletedTask;

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -23,5 +25,14 @@ public class CommonServices
         data = JsonUtility.FromJson<T>(fileContents);
 
         return data;
+    }
+
+    public static bool IsBatchMode()
+    {
+        var args = Environment.GetCommandLineArgs().ToList();
+        var isBatchMode= args.Contains("-batchmode");
+        Console.WriteLine($"Command Line Ne {string.Join(",", args)}, {isBatchMode}");
+
+        return isBatchMode;
     }
 }

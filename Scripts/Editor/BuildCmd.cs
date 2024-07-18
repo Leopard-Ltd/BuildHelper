@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -26,7 +25,8 @@ public class BuildCmd
     [MenuItem("Build/Build Android")]
     static void BuildAndroid()
     {
-        var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
+        var data        = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
+        var isBatchMode = CommonServices.IsBatchMode();
 
         if (data == null)
         {
@@ -39,9 +39,8 @@ public class BuildCmd
         {
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
             buildAndroidPlatForm.SetUpAndBuild(data);
-            var agrs = Environment.GetCommandLineArgs().ToList();
 
-            if (agrs.Contains("batchmode"))
+            if (isBatchMode)
             {
                 EditorApplication.Exit(0);
             }
@@ -62,7 +61,8 @@ public class BuildCmd
     [MenuItem("Build/Build WebGl")]
     static void BuildWebGL()
     {
-        var data = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+        var data        = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+        var isBatchMode = CommonServices.IsBatchMode();
 
         if (data == null)
         {
@@ -76,9 +76,8 @@ public class BuildCmd
             var buildWebGlPlatForm = new BuildWebGlPlatForm();
 
             buildWebGlPlatForm.SetUpAndBuild(data);
-            var agrs = Environment.GetCommandLineArgs().ToList();
 
-            if (agrs.Contains("batchmode"))
+            if (isBatchMode)
             {
                 EditorApplication.Exit(0);
             }
