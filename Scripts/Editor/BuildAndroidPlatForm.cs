@@ -38,13 +38,15 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         }
         else
         {
-            var tmp            = outputFileName.Split("-");
+            var tmp = outputFileName.Split("-");
             tmp[1]         = PlayerSettings.bundleVersion;
             outputFileName = string.Join("-", tmp);
         }
-        var dPath    = Application.dataPath;
+
+        var dPath = Application.dataPath;
         dPath = dPath.Replace("Assets", "buildversion.txt");
         File.WriteAllText(dPath, PlayerSettings.bundleVersion);
+
         var buildPlayerOptions = new BuildPlayerOptions
         {
             scenes           = this.LoadSceneOnPath(),
@@ -73,8 +75,9 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         {
             Console.WriteLine(e);
         }
-        //Build
 
+        //Build
+        this.PreprocessBuild();
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
         errors = errors || buildResult.summary.result != BuildResult.Succeeded;

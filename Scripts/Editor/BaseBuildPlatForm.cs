@@ -15,8 +15,6 @@ public abstract class BaseBuildPlatForm
 {
     public virtual void SetUpAndBuild(IBuildInformation data)
     {
-        this.FindAndSetGameVersion();
-
         this.ResetBuildSettings();
         this.BuildAddressable();
 
@@ -48,6 +46,8 @@ public abstract class BaseBuildPlatForm
         EditorUserBuildSettings.waitForPlayerConnection       = false;
     }
 
+    protected virtual void PreprocessBuild() { this.FindAndSetGameVersion(); }
+
     private void SetAllGroupsToLZMA()
     {
 #if ADDRESSABLE
@@ -62,7 +62,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }
