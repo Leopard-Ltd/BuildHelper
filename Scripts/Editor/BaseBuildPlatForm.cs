@@ -15,10 +15,26 @@ public abstract class BaseBuildPlatForm
 {
     public virtual void SetUpAndBuild(IBuildInformation data)
     {
+        this.FindAndSetGameVersion();
+
         this.ResetBuildSettings();
         this.BuildAddressable();
 
         EditorUserBuildSettings.development = data.IsDevelopment();
+    }
+
+    private void FindAndSetGameVersion()
+    {
+        var path                   = Application.dataPath;
+        var featureGameVersionPath = $"{path}/FeatureTemplate/Scripts/Services/FeatureGameVersion.cs";
+
+        if (!System.IO.File.Exists(featureGameVersionPath)) return;
+
+        var fileContent = System.IO.File.ReadAllText(featureGameVersionPath);
+
+        var newBuildInfo   = $"BuildInfo=\"Unity Version: {Application.unityVersion} | Build: {PlayerSettings.bundleVersion} - {PlayerSettings.Android.bundleVersionCode} - {System.DateTime.Now}\";";
+        var updatedContent = System.Text.RegularExpressions.Regex.Replace(fileContent, @"BuildInfo\s*=\s*\"".*\"";", newBuildInfo);
+        System.IO.File.WriteAllText(featureGameVersionPath, updatedContent);
     }
 
     private void ResetBuildSettings()
@@ -46,7 +62,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }
@@ -86,11 +102,7 @@ public abstract class BaseBuildPlatForm
 #endif
     }
 
-    protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup,string [] scripts)
-    {
-      
-        PlayerSettings.SetScriptingDefineSymbols(targetGroup, scripts);
-    }
+    protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup, string[] scripts) { PlayerSettings.SetScriptingDefineSymbols(targetGroup, scripts); }
 
     protected string[] LoadSceneOnPath()
     {
@@ -101,5 +113,4 @@ public abstract class BaseBuildPlatForm
 
         return scenes;
     }
-    
 }
