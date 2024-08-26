@@ -12,7 +12,7 @@ public class BuildAndroidInformation : IBuildInformation
 public class AndroidInformation
 {
     public string        scriptDefinition   = "TMP";
-    public string        keyName            = "user";
+    public string        keyName            = "user.keystore";
     public string        keyPass            = "123456";
     public string        aliasName          = "hai";
     public string        aliasPass          = "123456";

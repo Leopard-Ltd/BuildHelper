@@ -22,6 +22,18 @@ public class BuildCmd
         public BuildTargetGroup BuildTargetGroup;
     }
 
+    [MenuItem("Build/Build Android from Editor")]
+    static void BuildAndroidOnEditor()
+    {
+        var buildAndroidPlatForm = new BuildAndroidPlatForm();
+        var data                 = new BuildAndroidInformation();
+        var scriptDefineSymbol   = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android);
+        data.androidInformation.scriptDefinition = scriptDefineSymbol;
+        data.androidInformation.outputFileName   = "output-1.0.0-1";
+
+        buildAndroidPlatForm.SetUpAndBuild(data);
+    }
+
     [MenuItem("Build/Build Android")]
     static void BuildAndroid()
     {

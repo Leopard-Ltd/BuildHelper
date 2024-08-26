@@ -85,6 +85,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
         Console.WriteLine(new string('=', 80));
         Console.WriteLine();
+        Debug.Log("Build Android Done");
     }
 
     private void SetDefaultSetting(BuildAndroidInformation data)

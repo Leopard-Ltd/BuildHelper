@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEngine;
 
 public class BuildWebGlPlatForm : BaseBuildPlatForm
 {
@@ -32,6 +33,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
         Console.WriteLine(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
+        Debug.Log("Build Android Done");
     }
 
     private void SetupOptional()
