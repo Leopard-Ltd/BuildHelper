@@ -26,8 +26,6 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();
         this.SetPassword(data);
         this.SetScriptDefineSymbols(NamedBuildTarget.Android, data.androidInformation.scriptDefinition.Split(";"));
-        PlayerSettings.Android.minSdkVersion    = AndroidSdkVersions.AndroidApiLevel23;
-        PlayerSettings.Android.targetSdkVersion = (AndroidSdkVersions)34;
         var il2CppCodeGeneration = data.androidInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Android, il2CppCodeGeneration);
         var outputFileName = data.androidInformation.outputFileName;
