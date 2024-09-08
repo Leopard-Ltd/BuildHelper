@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Apis.Auth.OAuth2;
+using Editor.ModelToParse;
 using Google.Apis.Drive.v3;
-using Google.Apis.Services;
+using Google.Apis.Drive.v3.Data;
+using Google.Apis.Upload;
 using UnityEditor;
 using UnityEngine;
 using File = Google.Apis.Drive.v3.Data.File;
@@ -17,7 +18,42 @@ public class GoogleDriverServices
     static string     ZipFile  = "application/zip";
 
     [MenuItem("Build/UploadFile")]
-    static void TestUpload() { UploadAndroidPlatform(); }
+    static void TestUpload() { RunNow(); }
+
+    static async Task RunNow()
+    {
+        // CreateFolder("testFolder", "1nteHm_RihLOJZ0IsgBfshHkuqiGIaxxN", service);
+    }
+
+    static async Task DeleteAllFromServicesAccount()
+    {
+        var servicesAccountModel = CommonServices.GetDataModel<ServicesAccountModel>(CommonServices.GetPathBuildInformation("servicesAccount.json"));
+        var service              = await CommonServices.GetDriveServices();
+        var listRequest          = service.Files.List();
+        listRequest.Fields = "nextPageToken, files(id, name, owners)";
+        var files = await listRequest.ExecuteAsync();
+
+        var serviceEmail = servicesAccountModel.client_email;
+
+        foreach (var file in files.Files)
+        {
+            var isOwner = file.Owners.Any(owner => owner.EmailAddress == serviceEmail);
+
+            if (isOwner)
+            {
+                Debug.Log($"Deleting file: {file.Name} ({file.Id})");
+
+                var deleteRequest = service.Files.Delete(file.Id);
+                await deleteRequest.ExecuteAsync();
+
+                Debug.Log("Deleted.");
+            }
+            else
+            {
+                Debug.Log($"File {file.Name} ({file.Id}) is not owned by the service account and will not be deleted.");
+            }
+        }
+    }
 
     static string GetBuildFilePath()
     {
@@ -35,26 +71,31 @@ public class GoogleDriverServices
 
     static async void UploadWebGlPlatForm()
     {
-        var path             = Application.dataPath;
-        var webGlInformation = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
-        var zipFilePath      = $"{GetBuildFilePath()}Client/webgl/{webGlInformation.webGlInformation.outputFileName}.zip";
-        var service          = GetService();
-        var uploadInfo       = path.Replace("Assets", "");
+        var isBatchMode = CommonServices.IsBatchMode();
+        var path        = Application.dataPath;
+        var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+        var zipFilePath = $"{GetBuildFilePath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
+        var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
+        var uploadInfo  = path.Replace("Assets", "");
         //read from file
-        var folderId = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-
-        var environmentFolder = await CreateFolder(webGlInformation.webGlInformation.buildEnvironment, folderId, service);
+        var folderId          = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+        var environmentFolder = await CreateFolder(webglModel.webGlInformation.buildEnvironment, folderId, service);
         var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
         var zipFile           = "";
-        await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, out zipFile);
+        await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, (x) => { zipFile = x; });
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
         System.IO.File.WriteAllText(googleLinkPath, zipFile);
-        EditorApplication.Exit(0);
+
+        if (isBatchMode)
+        {
+            EditorApplication.Exit(0);
+        }
     }
 
     static async void UploadAndroidPlatform()
     {
+        var isBatchMode             = CommonServices.IsBatchMode();
         var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
 
         var path             = Application.dataPath;
@@ -74,12 +115,11 @@ public class GoogleDriverServices
             throw new Exception("Aab File not found");
         }
 
-        var service = GetService();
+        var service = await CommonServices.GetDriveServices(buildAndroidInformation.androidInformation.IsUseServicesAccount());
 
         var uploadInfo = path.Replace("Assets", "");
         //read from file
         var folderId = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-
         //BuildEnvironment
         var environmentFolder = await CreateFolder(buildAndroidInformation.androidInformation.buildEnvironment, folderId, service);
 
@@ -93,12 +133,12 @@ public class GoogleDriverServices
         var urlApk  = "";
         var urlAab  = "";
         var zipFile = "";
-        listTask.Add(UploadFileInternal(apkFilePath, versionFolder, service, ApkFile, out urlApk));
+        listTask.Add(UploadFileInternal(apkFilePath, versionFolder, service, ApkFile, (x) => { urlApk = x; }));
 
         if (buildAndroidInformation.androidInformation.BuildAppBundle())
         {
-            listTask.Add(UploadFileInternal(aabFilePath, versionFolder, service, ApkFile, out urlAab));
-            listTask.Add(UploadFileInternal(zipFilePath, versionFolder, service, ZipFile, out zipFile));
+            listTask.Add(UploadFileInternal(aabFilePath, versionFolder, service, ApkFile, (x) => { urlAab  = x; }));
+            listTask.Add(UploadFileInternal(zipFilePath, versionFolder, service, ZipFile, (x) => { zipFile = x; }));
         }
 
         await Task.WhenAll(listTask);
@@ -120,7 +160,11 @@ public class GoogleDriverServices
         var googleLinkPath = path.Replace("Assets", "");
         googleLinkPath = $"{googleLinkPath}googleInfo.txt";
         System.IO.File.WriteAllText(googleLinkPath, string.Join(",", list));
-        EditorApplication.Exit(0);
+
+        if (isBatchMode)
+        {
+            EditorApplication.Exit(0);
+        }
     }
 
     static async Task<string> CreateFolder(string folderName, string parentFolder, DriveService service)
@@ -144,8 +188,25 @@ public class GoogleDriverServices
         request.Fields            = "id";
         var file = await request.ExecuteAsync();
         Console.WriteLine("Folder ID: " + file.Id);
+        // await ShareWriter(service, file.Id, OwnerPermission.Keys.First());
 
         return file.Id;
+    }
+
+    private static async Task ShareWriter(DriveService service, string folderId, string userEmail)
+    {
+        var permission = new Permission
+        {
+            Role         = "writer",
+            Type         = "user",
+            EmailAddress = userEmail,
+        };
+
+        var request = service.Permissions.Create(permission, folderId);
+        request.SupportsAllDrives = true;
+
+        await request.ExecuteAsync();
+        Console.WriteLine($"Ownership transferred to {userEmail}.");
     }
 
     static File FindFolder(DriveService service, string parentFolder, string folderName)
@@ -170,7 +231,7 @@ public class GoogleDriverServices
         service.Files.Delete(folderId).Execute();
     }
 
-    private static Task UploadFileInternal(string apkFilePath, string folderId, DriveService service, string contentType, out string driverLink)
+    private static async Task UploadFileInternal(string apkFilePath, string folderId, DriveService service, string contentType, Action<string> onComplete)
     {
         var fileMetadata = new File()
         {
@@ -180,38 +241,28 @@ public class GoogleDriverServices
 
         FilesResource.CreateMediaUpload request;
 
-        using (var stream = new FileStream(apkFilePath, FileMode.Open))
+        var stream = new FileStream(apkFilePath, FileMode.Open);
+        request = service.Files.Create(fileMetadata, stream, contentType);
+
+        request.Fields            = "id";
+        request.SupportsAllDrives = true;
+        var progress = await request.UploadAsync();
+        var file     = request.ResponseBody;
+
+        switch (progress.Status)
         {
-            request                   = service.Files.Create(fileMetadata, stream, contentType);
-            request.Fields            = "id";
-            request.SupportsAllDrives = true;
-            request.Upload();
+            case UploadStatus.Failed:
+                Console.WriteLine($"Upload failed {progress.Exception}");
+
+                throw progress.Exception;
+            case UploadStatus.Completed:
+                var fileId = request.ResponseBody.Id;
+                Console.WriteLine($"File uploaded successfully. File ID: {fileId}");
+
+                break;
         }
 
-        var file    = request.ResponseBody;
         var urlFile = $"https://drive.google.com/uc?export=download&id={file.Id}";
-        driverLink = urlFile;
-
-        return Task.CompletedTask;
-    }
-
-    static DriveService GetService()
-    {
-        var servicesAccountPath = Application.dataPath;
-        servicesAccountPath = servicesAccountPath.Replace("Assets", "");
-        servicesAccountPath = $"{servicesAccountPath}/servicesAccount.json";
-        GoogleCredential credential;
-
-        using (var stream = new FileStream(servicesAccountPath, FileMode.Open, FileAccess.Read))
-        {
-            credential = GoogleCredential.FromStream(stream)
-                .CreateScoped(DriveService.Scope.Drive);
-        }
-
-        return new DriveService(new BaseClientService.Initializer()
-        {
-            HttpClientInitializer = credential,
-            ApplicationName       = "JenkinsBuild",
-        });
+        onComplete(urlFile);
     }
 }

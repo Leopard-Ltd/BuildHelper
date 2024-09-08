@@ -14,6 +14,9 @@ public class WebGlInformation
     public string optimizeSizeBuild  = "false";
     public string isBuildDevelopment = "false";
     public string buildEnvironment   = "Dev";
+    public string useServicesAccount = "true";
+    
+    public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool   OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
     public bool IsDevelopment() { return this.isBuildDevelopment.Equals("true"); }

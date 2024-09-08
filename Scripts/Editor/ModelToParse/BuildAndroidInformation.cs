@@ -24,8 +24,10 @@ public class AndroidInformation
     public string        isBuildDevelopment = "false";
     public string        bundleIdentifier   = "";
     public string        buildEnvironment   = "Dev";
+    public string        useServicesAccount = "true";
 
-    public bool BuildAppBundle() { return this.buildAppBundle.Equals("true"); }
+    public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
+    public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }
 
     public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
