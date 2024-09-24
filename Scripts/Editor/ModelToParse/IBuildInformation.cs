@@ -1,4 +1,5 @@
 ﻿public interface IBuildInformation
 {
-    bool IsDevelopment();
+    bool   IsDevelopment();
+    string BlueprintPath { get; }
 }

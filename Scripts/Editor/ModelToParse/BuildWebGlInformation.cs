@@ -3,7 +3,8 @@ public class BuildWebGlInformation : IBuildInformation
 {
     public WebGlInformation webGlInformation = new WebGlInformation();
 
-    public bool IsDevelopment() { return this.webGlInformation.IsDevelopment(); }
+    public bool   IsDevelopment() { return this.webGlInformation.IsDevelopment(); }
+    public string BlueprintPath   => this.webGlInformation.BlueprintPath;
 }
 
 [System.Serializable]
@@ -15,6 +16,7 @@ public class WebGlInformation
     public string isBuildDevelopment = "false";
     public string buildEnvironment   = "Dev";
     public string useServicesAccount = "true";
+    public string BlueprintPath      = "BlueprintData";
     
     public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool   OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }

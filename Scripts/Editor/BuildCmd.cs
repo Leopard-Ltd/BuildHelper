@@ -22,6 +22,15 @@ public class BuildCmd
         public BuildTargetGroup BuildTargetGroup;
     }
 
+    [MenuItem("Build/SetBlueprintPath")]
+
+    static void SetBlueprintDataPath()
+    {
+        var buildAndroidPlatForm = new BuildAndroidPlatForm();
+        var data                 = new BuildAndroidInformation();
+        buildAndroidPlatForm.SetupBlueprintPath(data);
+    }
+
     [MenuItem("Build/Build Android from Editor")]
     static void BuildAndroidOnEditor()
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BlueprintFlow.BlueprintControlFlow;
 using UnityEditor;
 
 #if ADDRESSABLE
@@ -19,6 +20,7 @@ public abstract class BaseBuildPlatForm
         this.BuildAddressable();
 
         EditorUserBuildSettings.development = data.IsDevelopment();
+        this.SetupBlueprintPath(data);
     }
 
     private void FindAndSetGameVersion()
@@ -33,6 +35,13 @@ public abstract class BaseBuildPlatForm
         var newBuildInfo   = $"BuildInfo=\"Unity Version: {Application.unityVersion} | Build: {PlayerSettings.bundleVersion} - {PlayerSettings.Android.bundleVersionCode} - {System.DateTime.Now}\";";
         var updatedContent = System.Text.RegularExpressions.Regex.Replace(fileContent, @"BuildInfo\s*=\s*\"".*\"";", newBuildInfo);
         System.IO.File.WriteAllText(featureGameVersionPath, updatedContent);
+    }
+
+    public void SetupBlueprintPath(IBuildInformation data)
+    {
+        var builderConfig = Resources.Load<BlueprintConfig>("GameConfigs/BlueprintConfig");
+        builderConfig.resourceBlueprintPath = $"{data.BlueprintPath}/";
+        EditorUtility.SetDirty(builderConfig);
     }
 
     private void ResetBuildSettings()
@@ -62,7 +71,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }

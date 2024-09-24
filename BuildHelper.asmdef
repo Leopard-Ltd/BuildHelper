@@ -2,7 +2,8 @@
     "name": "BuildHelper",
     "rootNamespace": "",
     "references": [
-        "Unity.Addressables.Editor"
+        "Unity.Addressables.Editor",
+        "GameFoundation.BlueprintFlow"
     ],
     "includePlatforms": [
         "Editor"
