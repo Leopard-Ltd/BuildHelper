@@ -6,7 +6,7 @@ public class BuildAndroidInformation : IBuildInformation
     public AndroidInformation androidInformation = new AndroidInformation();
 
     public bool   IsDevelopment() { return this.androidInformation.IsDevelopment(); }
-    public string BlueprintPath   => this.androidInformation.BlueprintPath;
+    public string BlueprintPath   => this.androidInformation.blueprintPath;
 }
 
 [Serializable]
@@ -26,7 +26,7 @@ public class AndroidInformation
     public string        bundleIdentifier   = "";
     public string        buildEnvironment   = "Dev";
     public string        useServicesAccount = "true";
-    public string        BlueprintPath    = "BlueprintData";
+    public string        blueprintPath    = "BlueprintData";
 
     public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }

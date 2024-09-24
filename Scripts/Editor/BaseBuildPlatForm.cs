@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Linq;
+
+#if SET_BLUEPRINT_PATH
 using BlueprintFlow.BlueprintControlFlow;
+#endif
+
 using UnityEditor;
 
 #if ADDRESSABLE
@@ -39,9 +43,11 @@ public abstract class BaseBuildPlatForm
 
     public void SetupBlueprintPath(IBuildInformation data)
     {
+#if SET_BLUEPRINT_PATH
         var builderConfig = Resources.Load<BlueprintConfig>("GameConfigs/BlueprintConfig");
         builderConfig.resourceBlueprintPath = $"{data.BlueprintPath}/";
         EditorUtility.SetDirty(builderConfig);
+#endif
     }
 
     private void ResetBuildSettings()
