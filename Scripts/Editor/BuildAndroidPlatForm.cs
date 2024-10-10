@@ -82,7 +82,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         }
 
         //Build
-        this.PreprocessBuild();
+        this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
         errors = errors || buildResult.summary.result != BuildResult.Succeeded;

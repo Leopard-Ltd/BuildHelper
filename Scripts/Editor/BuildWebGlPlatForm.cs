@@ -29,7 +29,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
             locationPathName = Path.GetFullPath($"../Build/Client/webgl/{data.webGlInformation.outputFileName}"),
             targetGroup      = BuildTargetGroup.WebGL
         };
-        this.PreprocessBuild();
+        this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
         Console.WriteLine(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");

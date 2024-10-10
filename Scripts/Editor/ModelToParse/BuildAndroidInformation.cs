@@ -7,6 +7,7 @@ public class BuildAndroidInformation : IBuildInformation
 
     public bool   IsDevelopment() { return this.androidInformation.IsDevelopment(); }
     public string BlueprintPath   => this.androidInformation.blueprintPath;
+    public string DefineSymbol    => this.androidInformation.scriptDefinition;
 }
 
 [Serializable]

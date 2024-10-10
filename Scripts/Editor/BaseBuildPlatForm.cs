@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Linq;
-
-#if SET_BLUEPRINT_PATH
-using BlueprintFlow.BlueprintControlFlow;
-#endif
-
+using System.Text.RegularExpressions;
 using UnityEditor;
 
 #if ADDRESSABLE
@@ -24,7 +20,6 @@ public abstract class BaseBuildPlatForm
         this.BuildAddressable();
 
         EditorUserBuildSettings.development = data.IsDevelopment();
-        this.SetupBlueprintPath(data);
     }
 
     private void FindAndSetGameVersion()
@@ -43,12 +38,29 @@ public abstract class BaseBuildPlatForm
 
     public void SetupBlueprintPath(IBuildInformation data)
     {
-#if SET_BLUEPRINT_PATH
-        var builderConfig = Resources.Load<BlueprintConfig>("GameConfigs/BlueprintConfig");
-        builderConfig.resourceBlueprintPath = $"{data.BlueprintPath}/";
-        EditorUtility.SetDirty(builderConfig);
+        var blueprintConfig = $"{Application.dataPath}/Resources/GameConfigs/BlueprintConfig.asset";
+
+        if (!System.IO.File.Exists(blueprintConfig))
+        {
+            Console.WriteLine("Blueprint config not found");
+
+            return;
+        }
+
+        if (!data.DefineSymbol.Contains("SET_BLUEPRINT_PATH"))
+        {
+            Console.WriteLine("No need to set blueprint path");
+
+            return;
+        }
+
+        var content     = System.IO.File.ReadAllText(blueprintConfig);
+        var pattern     = @"(resourceBlueprintPath:\s*).*";
+        var replacement = $"$1{data.BlueprintPath}/";
+
+        var result = Regex.Replace(content, pattern, replacement);
+        System.IO.File.WriteAllText(blueprintConfig, result);
         Console.WriteLine($"Reset blueprint path to {data.BlueprintPath}");
-#endif
     }
 
     private void ResetBuildSettings()
@@ -62,7 +74,11 @@ public abstract class BaseBuildPlatForm
         EditorUserBuildSettings.waitForPlayerConnection       = false;
     }
 
-    protected virtual void PreprocessBuild() { this.FindAndSetGameVersion(); }
+    protected virtual void PreprocessBuild(IBuildInformation data)
+    {
+        this.FindAndSetGameVersion();
+        this.SetupBlueprintPath(data);
+    }
 
     private void SetAllGroupsToLZMA()
     {
