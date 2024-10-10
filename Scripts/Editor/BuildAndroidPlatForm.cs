@@ -33,6 +33,13 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         if (data.androidInformation.customVersion.IsCustomVersion())
         {
             PlayerSettings.bundleVersion = data.androidInformation.customVersion.version;
+
+            if (data.androidInformation.customVersion.IsAutoVersion())
+            {
+                var tmp         = outputFileName.Split("-");
+                var buildNumber = tmp[2];
+                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{buildNumber}";
+            }
         }
         else
         {

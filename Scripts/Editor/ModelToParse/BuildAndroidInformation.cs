@@ -41,6 +41,9 @@ public class CustomVersion
 {
     public string isCustomVersion = "false";
     public string version         = "1.0.0";
+    public string autoVersion= "false";
+    
+    public bool IsAutoVersion() { return this.autoVersion.Equals("true"); }
 
     public bool IsCustomVersion() { return this.isCustomVersion.Equals("true"); }
 }
