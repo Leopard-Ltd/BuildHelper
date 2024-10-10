@@ -47,6 +47,7 @@ public abstract class BaseBuildPlatForm
         var builderConfig = Resources.Load<BlueprintConfig>("GameConfigs/BlueprintConfig");
         builderConfig.resourceBlueprintPath = $"{data.BlueprintPath}/";
         EditorUtility.SetDirty(builderConfig);
+        Console.WriteLine($"Reset blueprint path to {data.BlueprintPath}");
 #endif
     }
 
