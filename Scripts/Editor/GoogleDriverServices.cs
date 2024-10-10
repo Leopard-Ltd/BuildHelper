@@ -17,7 +17,7 @@ public class GoogleDriverServices
     static string     ZipFile  = "application/zip";
 
     [MenuItem("Build/UploadFile")]
-    static void TestUpload() { RunNow(); }
+    static void TestUpload() { UploadAndroidPlatform(); }
 
     static async Task RunNow()
     {
@@ -92,17 +92,30 @@ public class GoogleDriverServices
         }
     }
 
+    static string GetFinalBuildVersion()
+    {
+        var buildversionPath = Application.dataPath;
+        buildversionPath = buildversionPath.Replace("Assets", "buildversion.txt");
+
+        var version = System.IO.File.ReadAllText(buildversionPath);
+
+        return version;
+    }
+
     static async void UploadAndroidPlatform()
     {
         var isBatchMode             = CommonServices.IsBatchMode();
         var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
 
-        var path             = Application.dataPath;
-        var internalFilePath = $"{GetBuildFilePath()}Client/Android/{buildAndroidInformation.androidInformation.outputFileName}";
+        var path = Application.dataPath;
 
+        var finalBuildVersion = GetFinalBuildVersion();
+        var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
+        var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
+        var internalFilePath  = $"{GetBuildFilePath()}Client/Android/{outputFileName}";
         var apkFilePath = $"{internalFilePath}.apk";
         var aabFilePath = $"{internalFilePath}.aab";
-        var zipFilePath = $"{internalFilePath}-{buildAndroidInformation.androidInformation.customVersion.version}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
+        var zipFilePath = $"{internalFilePath}-{finalBuildVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
 
         if (!System.IO.File.Exists(apkFilePath))
         {
@@ -126,7 +139,7 @@ public class GoogleDriverServices
         var platFormFolder = await CreateFolder("Android", environmentFolder, service);
 
         //Create VersionFolder
-        var versionFolder = await CreateFolder($"{buildAndroidInformation.androidInformation.outputFileName}", platFormFolder, service);
+        var versionFolder = await CreateFolder($"{outputFileName}", platFormFolder, service);
 
         listTask = new List<Task>();
         var urlApk  = "";
