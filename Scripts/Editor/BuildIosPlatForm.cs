@@ -22,6 +22,19 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         var outputFileName = data.iosInformation.outputFileName;
         PlayerSettings.stripEngineCode             = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.iOS), ManagedStrippingLevel.High);
+        
+        if (data.iosInformation.customVersion.IsCustomVersion())
+        {
+            PlayerSettings.bundleVersion = data.iosInformation.customVersion.version;
+
+            if (data.iosInformation.customVersion.IsAutoVersion())
+            {
+                var tmp         = outputFileName.Split("-");
+                var buildNumber = tmp[2];
+                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{buildNumber}";
+            }
+        }
+        
         var buildPlayerOptions = new BuildPlayerOptions
         {
             scenes           = this.LoadSceneOnPath(),
