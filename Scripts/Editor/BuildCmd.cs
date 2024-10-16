@@ -23,7 +23,6 @@ public class BuildCmd
     }
 
     [MenuItem("Build/SetBlueprintPath")]
-
     static void SetBlueprintDataPath()
     {
         var buildAndroidPlatForm = new BuildAndroidPlatForm();
@@ -74,9 +73,35 @@ public class BuildCmd
         }
     }
 
-    static void BuildIOS()
+    [MenuItem("Build/Build Ios")]
+    static void BuildIos()
     {
-        // var data = GetDataModel();
+        var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
+        var isBatchMode = CommonServices.IsBatchMode();
+
+        if (data == null)
+        {
+            Console.WriteLine("No data model found");
+
+            throw new Exception("No data model found");
+        }
+
+        try
+        {
+            var buildIosPlatForm = new BuildIosPlatForm();
+            buildIosPlatForm.SetUpAndBuild(data);
+
+            if (isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+
+            throw;
+        }
     }
 
     [MenuItem("Build/Build WebGl")]
