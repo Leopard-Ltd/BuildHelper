@@ -22,7 +22,7 @@ public abstract class BaseBuildPlatForm
         EditorUserBuildSettings.development = data.IsDevelopment();
     }
 
-    private void FindAndSetGameVersion()
+    private void FindAndSetGameVersion(IBuildInformation data)
     {
         var path                   = Application.dataPath;
         var featureGameVersionPath = $"{path}/FeatureTemplate/Scripts/Services/FeatureGameVersion.cs";
@@ -31,7 +31,7 @@ public abstract class BaseBuildPlatForm
 
         var fileContent = System.IO.File.ReadAllText(featureGameVersionPath);
 
-        var newBuildInfo   = $"BuildInfo=\"Unity Version: {Application.unityVersion} | Build: {PlayerSettings.bundleVersion} - {PlayerSettings.Android.bundleVersionCode} - {System.DateTime.Now}\";";
+        var newBuildInfo   = $"BuildInfo=\"Unity Version: {Application.unityVersion} | Build: {PlayerSettings.bundleVersion} - {data.VersionCode} - {System.DateTime.Now}\";";
         var updatedContent = System.Text.RegularExpressions.Regex.Replace(fileContent, @"BuildInfo\s*=\s*\"".*\"";", newBuildInfo);
         System.IO.File.WriteAllText(featureGameVersionPath, updatedContent);
     }
@@ -76,7 +76,7 @@ public abstract class BaseBuildPlatForm
 
     protected virtual void PreprocessBuild(IBuildInformation data)
     {
-        this.FindAndSetGameVersion();
+        this.FindAndSetGameVersion(data);
         this.SetupBlueprintPath(data);
     }
 

@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEngine;
 
 public class BuildIosPlatForm : BaseBuildPlatForm
 {
@@ -22,7 +23,6 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         var outputFileName = data.iosInformation.outputFileName;
         PlayerSettings.stripEngineCode             = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.iOS), ManagedStrippingLevel.High);
-        
         if (data.iosInformation.customVersion.IsCustomVersion())
         {
             PlayerSettings.bundleVersion = data.iosInformation.customVersion.version;
@@ -34,7 +34,9 @@ public class BuildIosPlatForm : BaseBuildPlatForm
                 PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{buildNumber}";
             }
         }
-        
+        var dPath = Application.dataPath;
+        dPath = dPath.Replace("Assets", "buildversion.txt");
+        File.WriteAllText(dPath, PlayerSettings.bundleVersion);
         var buildPlayerOptions = new BuildPlayerOptions
         {
             scenes           = this.LoadSceneOnPath(),

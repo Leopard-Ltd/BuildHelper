@@ -6,6 +6,7 @@ public class BuildWebGlInformation : IBuildInformation
     public bool   IsDevelopment() { return this.webGlInformation.IsDevelopment(); }
     public string BlueprintPath   => this.webGlInformation.blueprintPath;
     public string DefineSymbol    => this.webGlInformation.scriptDefinition;
+    public string VersionCode     => "1";
 }
 
 [System.Serializable]

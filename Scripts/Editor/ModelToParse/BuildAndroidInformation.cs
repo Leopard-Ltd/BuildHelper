@@ -8,6 +8,7 @@ public class BuildAndroidInformation : IBuildInformation
     public bool   IsDevelopment() { return this.androidInformation.IsDevelopment(); }
     public string BlueprintPath   => this.androidInformation.blueprintPath;
     public string DefineSymbol    => this.androidInformation.scriptDefinition;
+    public string VersionCode     => this.androidInformation.buildNumber;
 }
 
 [Serializable]
@@ -27,7 +28,7 @@ public class AndroidInformation
     public string        bundleIdentifier   = "";
     public string        buildEnvironment   = "Dev";
     public string        useServicesAccount = "true";
-    public string        blueprintPath    = "BlueprintData";
+    public string        blueprintPath      = "BlueprintData";
 
     public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }
@@ -42,8 +43,8 @@ public class CustomVersion
 {
     public string isCustomVersion = "false";
     public string version         = "1.0.0";
-    public string autoVersion= "false";
-    
+    public string autoVersion     = "false";
+
     public bool IsAutoVersion() { return this.autoVersion.Equals("true"); }
 
     public bool IsCustomVersion() { return this.isCustomVersion.Equals("true"); }

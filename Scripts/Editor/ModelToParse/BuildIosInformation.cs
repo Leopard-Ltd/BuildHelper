@@ -8,6 +8,7 @@ public class BuildIosInformation : IBuildInformation
     public bool   IsDevelopment() { return this.iosInformation.IsDevelopment(); }
     public string BlueprintPath   => this.iosInformation.blueprintPath;
     public string DefineSymbol    => this.iosInformation.scriptDefinition;
+    public string VersionCode     => this.iosInformation.buildNumber;
 }
 
 [Serializable]

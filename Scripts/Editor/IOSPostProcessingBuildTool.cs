@@ -1,4 +1,4 @@
-﻿#if UNITY_IOS
+﻿// #if UNITY_IOS
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -17,6 +17,8 @@
         [PostProcessBuild(int.MaxValue)]
         public static void OnPostProcessBuild(BuildTarget buildTarget, string pathToBuiltProject)
         {
+            
+            
             Debug.Log($"Starting iOS PostProcessBuild : {pathToBuiltProject}");
             Console.WriteLine($"Starting iOS PostProcessBuild : {pathToBuiltProject}");
             try
@@ -35,6 +37,7 @@
         #region Main
         private static void SetProjectConfig(string pathToBuiltProject)
         {
+            var data= CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
             var projectPath = pathToBuiltProject + "/Unity-iPhone.xcodeproj/project.pbxproj";
             var pbxProject = new PBXProject();
             pbxProject.ReadFromString(File.ReadAllText(projectPath));
@@ -43,6 +46,18 @@
             var unityFrameworkTargetGuid = pbxProject.GetUnityFrameworkTargetGuid();
             var projectGuid              = pbxProject.ProjectGuid();
             var pbxProjectPath           = PBXProject.GetPBXProjectPath(pathToBuiltProject);
+            
+            var teamID = data.iosInformation.signingTeamId;  // Team ID
+            pbxProject.SetTeamId(mainTargetGuid, teamID);
+
+            // Enable automatic signing
+            pbxProject.SetBuildProperty(mainTargetGuid, "CODE_SIGN_STYLE", "Automatic");
+            //set version
+            pbxProject.SetBuildProperty(mainTargetGuid, "CURRENT_PROJECT_VERSION", PlayerSettings.iOS.buildNumber); // Set build number
+            pbxProject.SetBuildProperty(mainTargetGuid, "MARKETING_VERSION", PlayerSettings.bundleVersion); // Set version
+            
+            
+            
             SetProjectConfig(pbxProject, mainTargetGuid, testTargetGuid, unityFrameworkTargetGuid, projectGuid);
             SetCapability(pbxProjectPath, mainTargetGuid);
             File.WriteAllText(projectPath, pbxProject.WriteToString());
@@ -147,4 +162,4 @@
         }
         #endregion
     }
-#endif
+// #endif
