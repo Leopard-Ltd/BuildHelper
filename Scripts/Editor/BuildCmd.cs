@@ -60,10 +60,7 @@ public class BuildCmd
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
             buildAndroidPlatForm.SetUpAndBuild(data);
 
-            if (isBatchMode)
-            {
-                EditorApplication.Exit(0);
-            }
+            OnAfterExecute(isBatchMode);
         }
         catch (Exception e)
         {
@@ -91,10 +88,7 @@ public class BuildCmd
             var buildIosPlatForm = new BuildIosPlatForm();
             buildIosPlatForm.SetUpAndBuild(data);
 
-            if (isBatchMode)
-            {
-                EditorApplication.Exit(0);
-            }
+            OnAfterExecute(isBatchMode);
         }
         catch (Exception e)
         {
@@ -123,10 +117,7 @@ public class BuildCmd
 
             buildWebGlPlatForm.SetUpAndBuild(data);
 
-            if (isBatchMode)
-            {
-                EditorApplication.Exit(0);
-            }
+            OnAfterExecute(isBatchMode);
         }
         catch (Exception e)
         {
@@ -207,6 +198,16 @@ public class BuildCmd
         }
     }
 
+    [MenuItem("Build/UploadTestFlight")]
+    static void UploadTestFlight()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+
+        UploadIOSBuild.UploadTestFlight();
+
+        OnAfterExecute(isBatchMode);
+    }
+
     private static void WriteStep(StreamWriter file, BuildStep step)
     {
         file.WriteLine($"Step {step.name}  Depth: {step.depth} Time: {step.duration}");
@@ -217,6 +218,14 @@ public class BuildCmd
         }
 
         file.WriteLine();
+    }
+
+    static void OnAfterExecute(bool isBatchMode)
+    {
+        if (isBatchMode)
+        {
+            EditorApplication.Exit(0);
+        }
     }
 
     private static string Prefix(LogType type) =>
