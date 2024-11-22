@@ -1,4 +1,4 @@
-﻿// #if UNITY_IOS
+﻿#if UNITY_IOS
 
 using System;
 using System.Collections.Generic;
@@ -71,13 +71,9 @@ public class IOSPostProcessingBuildTool
         var projectGuid              = pbxProject.ProjectGuid();
         var pbxProjectPath           = PBXProject.GetPBXProjectPath(pathToBuiltProject);
 
-        // var teamID = data.iosInformation.signingTeamId; // Team ID
-        // pbxProject.SetTeamId(mainTargetGuid, teamID);
-        //
-        // // Enable automatic signing
-        // pbxProject.SetBuildProperty(mainTargetGuid, "CODE_SIGN_STYLE", "Automatic");
+        SetAutomatic(data, pbxProject, mainTargetGuid);
         
-        SetTeamManualy(data, pbxProject, mainTargetGuid);
+        // SetTeamManualy(data, pbxProject, mainTargetGuid);
         //set version
         pbxProject.SetBuildProperty(mainTargetGuid, "CURRENT_PROJECT_VERSION", PlayerSettings.iOS.buildNumber); // Set build number
         pbxProject.SetBuildProperty(mainTargetGuid, "MARKETING_VERSION", PlayerSettings.bundleVersion); // Set version
@@ -89,6 +85,15 @@ public class IOSPostProcessingBuildTool
         Console.WriteLine("IOSPostProcessingBuildTool SetProjectConfig Success");
     }
 
+    private static void SetAutomatic(BuildIosInformation data, PBXProject pbxProject, string mainTargetGuid)
+    {
+        var teamID = data.iosInformation.signingTeamId; // Team ID
+        pbxProject.SetTeamId(mainTargetGuid, teamID);
+        
+        // Enable automatic signing
+        pbxProject.SetBuildProperty(mainTargetGuid, "CODE_SIGN_STYLE", "Automatic");
+    }
+    
     private static void SetTeamManualy(BuildIosInformation data, PBXProject pbxProject, string mainTargetGuid)
     {
         var teamID      = data.iosInformation.signingTeamId; // Team ID
@@ -216,4 +221,4 @@ public class IOSPostProcessingBuildTool
 
     #endregion
 }
-// #endif
+#endif
