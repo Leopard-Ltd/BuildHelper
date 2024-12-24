@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -60,7 +62,35 @@ public class BuildCmd
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
             buildAndroidPlatForm.SetUpAndBuild(data);
 
-            OnAfterExecute(isBatchMode);
+            OnAfterExecute(isBatchMode, () =>
+            {
+                var folderPath = Path.GetFullPath($"../Build/Client/Android/");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    // Windows
+                    Process.Start("explorer.exe", folderPath);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    // macOS
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName        = "open",
+                        Arguments       = folderPath,
+                        UseShellExecute = true
+                    });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // Linux
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName        = "xdg-open",
+                        Arguments       = folderPath,
+                        UseShellExecute = true
+                    });
+                }
+            });
         }
         catch (Exception e)
         {
@@ -220,11 +250,15 @@ public class BuildCmd
         file.WriteLine();
     }
 
-    static void OnAfterExecute(bool isBatchMode)
+    static void OnAfterExecute(bool isBatchMode,Action action = null)
     {
         if (isBatchMode)
         {
             EditorApplication.Exit(0);
+        }
+        else
+        {
+            action?.Invoke();
         }
     }
 
