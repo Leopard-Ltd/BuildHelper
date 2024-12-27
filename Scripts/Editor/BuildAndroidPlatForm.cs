@@ -12,6 +12,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
     public override void SetUpAndBuild(IBuildInformation baseData)
     {
         var data = (BuildAndroidInformation)baseData;
+        this.SetPassword(data);
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         base.SetUpAndBuild(data);
         //auto profile
@@ -23,8 +24,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         }
 
         var errors = false;
-        EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();
-        this.SetPassword(data);
+        EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();       
         this.SetScriptDefineSymbols(NamedBuildTarget.Android, data.androidInformation.scriptDefinition.Split(";"));
         var il2CppCodeGeneration = data.androidInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Android, il2CppCodeGeneration);
