@@ -17,9 +17,18 @@ public abstract class BaseBuildPlatForm
     public virtual void SetUpAndBuild(IBuildInformation data)
     {
         this.ResetBuildSettings();
+        try
+        {
+            PlayerSettings.SplashScreen.showUnityLogo = false;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
         this.BuildAddressable();
 
         EditorUserBuildSettings.development = data.IsDevelopment();
+        
     }
 
     private void FindAndSetGameVersion(IBuildInformation data)

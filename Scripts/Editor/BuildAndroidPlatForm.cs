@@ -71,15 +71,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 #endif
         PlayerSettings.Android.bundleVersionCode = int.Parse(data.androidInformation.buildNumber);
         this.SetDefaultSetting(data);
-
-        try
-        {
-            PlayerSettings.SplashScreen.showUnityLogo = false;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
+     
 
         //Build
         this.PreprocessBuild(data);
