@@ -12,6 +12,10 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         var data = (BuildIosInformation)baseData;
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
         base.SetUpAndBuild(data);
+        if (!string.IsNullOrEmpty(data.iosInformation.productName))
+        {
+            PlayerSettings.productName = data.iosInformation.productName;
+        }
         EditorUserBuildSettings.connectProfiler = data.iosInformation.IsDevelopment();
 
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, data.iosInformation.bundleIdentifier);

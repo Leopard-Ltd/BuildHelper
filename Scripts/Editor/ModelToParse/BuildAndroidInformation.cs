@@ -29,6 +29,7 @@ public class AndroidInformation
     public string        buildEnvironment   = "Dev";
     public string        useServicesAccount = "true";
     public string        blueprintPath      = "BlueprintData";
+    public string        productName        = "";
 
     public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }

@@ -15,6 +15,12 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         this.SetPassword(data);
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         base.SetUpAndBuild(data);
+
+        if (!string.IsNullOrEmpty(data.androidInformation.productName))
+        {
+            PlayerSettings.productName = data.androidInformation.productName;
+        }
+
         //auto profile
         EditorUserBuildSettings.connectProfiler = data.androidInformation.IsDevelopment();
 

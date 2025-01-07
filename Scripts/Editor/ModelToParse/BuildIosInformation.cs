@@ -24,6 +24,7 @@ public class IosInformation
     public string        bundleIdentifier   = "com.abc.test";
 
     public string blueprintPath = "BlueprintData";
+    public string productName   = "";
 
     public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
