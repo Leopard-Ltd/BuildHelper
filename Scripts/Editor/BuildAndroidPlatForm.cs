@@ -96,8 +96,8 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
         PlayerSettings.stripEngineCode             = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), ManagedStrippingLevel.High);
-        PlayerSettings.Android.minifyDebug   = true;
-        PlayerSettings.Android.minifyRelease = true;
+        PlayerSettings.Android.minifyDebug   = data.androidInformation.IsMinify();
+        PlayerSettings.Android.minifyRelease = data.androidInformation.IsMinify();
 
 #if UNITY_6000_0_OR_NEWER
         PlayerSettings.Android.splitApplicationBinary = data.androidInformation.BuildAppBundle();
