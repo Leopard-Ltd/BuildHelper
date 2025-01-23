@@ -33,9 +33,7 @@ public class BuildIosPlatForm : BaseBuildPlatForm
 
             if (data.iosInformation.customVersion.IsAutoVersion())
             {
-                var tmp         = outputFileName.Split("-");
-                var buildNumber = tmp[2];
-                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{buildNumber}";
+                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.iosInformation.buildNumber}";
             }
         }
         var dPath = Application.dataPath;
