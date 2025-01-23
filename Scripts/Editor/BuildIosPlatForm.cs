@@ -30,11 +30,11 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         if (data.iosInformation.customVersion.IsCustomVersion())
         {
             PlayerSettings.bundleVersion = data.iosInformation.customVersion.version;
-
-            if (data.iosInformation.customVersion.IsAutoVersion())
-            {
-                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.iosInformation.buildNumber}";
-            }
+        }
+        
+        if (data.iosInformation.customVersion.IsAutoVersion())
+        {
+            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.iosInformation.buildNumber}";
         }
         var dPath = Application.dataPath;
         dPath = dPath.Replace("Assets", "buildversion.txt");

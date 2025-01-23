@@ -30,7 +30,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         }
 
         var errors = false;
-        EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();       
+        EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();
         this.SetScriptDefineSymbols(NamedBuildTarget.Android, data.androidInformation.scriptDefinition.Split(";"));
         var il2CppCodeGeneration = data.androidInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Android, il2CppCodeGeneration);
@@ -39,24 +39,21 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         if (data.androidInformation.customVersion.IsCustomVersion())
         {
             PlayerSettings.bundleVersion = data.androidInformation.customVersion.version;
-
-            if (data.androidInformation.customVersion.IsAutoVersion())
-            {
-                var tmp         = outputFileName.Split("-");
-                var buildNumber = tmp[2];
-                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{buildNumber}";
-            }
         }
-        else
+        var outputVersion= PlayerSettings.bundleVersion;
+
+        var tmp= outputFileName.Split("-");
+        tmp[1]         = outputVersion;
+        outputFileName = string.Join("-", tmp);
+
+        if (data.androidInformation.customVersion.IsAutoVersion())
         {
-            var tmp = outputFileName.Split("-");
-            tmp[1]         = PlayerSettings.bundleVersion;
-            outputFileName = string.Join("-", tmp);
+            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.androidInformation.buildNumber}";
         }
 
         var dPath = Application.dataPath;
         dPath = dPath.Replace("Assets", "buildversion.txt");
-        File.WriteAllText(dPath, PlayerSettings.bundleVersion);
+        File.WriteAllText(dPath, outputVersion);
 
         var buildPlayerOptions = new BuildPlayerOptions
         {
@@ -77,7 +74,6 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 #endif
         PlayerSettings.Android.bundleVersionCode = int.Parse(data.androidInformation.buildNumber);
         this.SetDefaultSetting(data);
-     
 
         //Build
         this.PreprocessBuild(data);
