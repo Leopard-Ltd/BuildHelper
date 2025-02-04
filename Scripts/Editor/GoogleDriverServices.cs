@@ -115,7 +115,7 @@ public class GoogleDriverServices
         var internalFilePath  = $"{GetBuildFilePath()}Client/Android/{outputFileName}";
         var apkFilePath = $"{internalFilePath}.apk";
         var aabFilePath = $"{internalFilePath}.aab";
-        var zipFilePath = $"{internalFilePath}-{finalBuildVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
+        var zipFilePath = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
 
         if (!System.IO.File.Exists(apkFilePath))
         {
