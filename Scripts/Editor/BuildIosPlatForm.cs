@@ -55,6 +55,6 @@ public class BuildIosPlatForm : BaseBuildPlatForm
 
     private string GetBuildPath(string outputFileName)
     {
-        return Path.GetFullPath($"../Build/Client/Ios/{outputFileName}");
+        return Path.GetFullPath($"../Build/Client/ios/{outputFileName}");
     }
 }

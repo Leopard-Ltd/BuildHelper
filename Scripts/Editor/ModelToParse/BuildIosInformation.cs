@@ -23,8 +23,16 @@ public class IosInformation
     public string        signingTeamId      = "";
     public string        bundleIdentifier   = "com.abc.test";
 
-    public string blueprintPath = "BlueprintData";
-    public string productName   = "";
+    public string blueprintPath          = "BlueprintData";
+    public string productName            = "";
+    public string shouldUploadToAppStore = "false";
+    public string accountAppleId         = "";
+    public string accountPassword        = "";
+
+    public bool IsUploadAppstoreConnect()
+    {
+        return this.shouldUploadToAppStore.Equals("true");
+    }
 
     public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
