@@ -1,22 +1,113 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 public static class UploadIOSBuild
 {
     public static void UploadTestFlight()
     {
-        var data          = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
-        var ipaFolderPath = Path.GetFullPath($"../Build/Client/ios/{data.iosInformation.outputFileName}/{data.iosInformation.outputFileName}.ipa");
-        var appleId       = data.iosInformation.accountAppleId;
-        var appPassword   = data.iosInformation.accountPassword;
-        var teamId        = data.iosInformation.signingTeamId;
+        MoveArchive();
+        
+        // var data          = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
+        //var ipaFolderPath = Path.GetFullPath($"../Build/Client/ios/{data.iosInformation.outputFileName}/{data.iosInformation.outputFileName}.ipa");
+        // var appleId       = data.iosInformation.accountAppleId;
+        //var appPassword   = data.iosInformation.accountPassword;
+        // var teamId        = data.iosInformation.signingTeamId;
 
-        var ipaPath = $"{FindIpaFileInFolder(ipaFolderPath)}";
-        var command = $"/Applications/Transporter.app/Contents/itms/bin/iTMSTransporter -m upload -f \"{ipaFolderPath}\" -u \"{appleId}\" -p \"{appPassword}\" -itc_provider \"{teamId}\"";
+        //  var ipaPath = $"{FindIpaFileInFolder(ipaFolderPath)}";
+        // var command = $"/Applications/Transporter.app/Contents/itms/bin/iTMSTransporter -m upload -f \"{ipaFolderPath}\" -u \"{appleId}\" -p \"{appPassword}\" -itc_provider \"{teamId}\"";
 
-        RunCommand(command);
+        // RunCommand(command);
+
+       
+    }
+
+    static void MoveArchive()
+    {
+        var data = CommonServices.GetDataModel<BuildIosInformation>(
+            CommonServices.GetPathBuildInformation("IosInformation.json"));
+
+        var userHome          = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var archivePath       = Path.Combine(userHome, "Library", "Developer", "Xcode", "Archives");
+        var currentDateTime   = DateTime.Now.ToString("yyyy-MM-dd");
+        var destinationFolder = Path.Combine(archivePath, currentDateTime);
+
+        var path         = Application.dataPath.Replace("Assets", string.Empty).TrimEnd('/');
+        var parentPath   = Path.GetDirectoryName(path);
+        var sourceFolder = Path.Combine(parentPath, "Build/Client/ios", data.iosInformation.outputFileName, $"{data.iosInformation.outputFileName}.xcarchive");
+
+        if (!Directory.Exists(sourceFolder))
+        {
+            LogMessage("❌ Lỗi: Thư mục nguồn không tồn tại - " + sourceFolder);
+
+            return;
+        }
+
+        if (!Directory.Exists(destinationFolder))
+        {
+            try
+            {
+                Directory.CreateDirectory(destinationFolder);
+            }
+            catch (Exception ex)
+            {
+                LogMessage("❌ Lỗi tạo thư mục: " + ex.Message);
+
+                return;
+            }
+        }
+
+        var timestamp       = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var newArchiveName  = $"{data.iosInformation.outputFileName}_{timestamp}.xcarchive";
+        var destinationPath = Path.Combine(destinationFolder, newArchiveName);
+
+        try
+        {
+            CopyDirectory(sourceFolder, destinationPath);
+            LogMessage($"✅ Đã sao chép thành công: {destinationPath}");
+        }
+        catch (Exception ex)
+        {
+            LogMessage("❌ Lỗi khi sao chép thư mục: " + ex.Message);
+
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName        = "open",
+                Arguments       = "\"" + archivePath + "\"",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            LogMessage("❌ Lỗi khi mở thư mục: " + ex.Message);
+        }
+    }
+
+    static void CopyDirectory(string sourceDir, string destinationDir)
+    {
+        if (!Directory.Exists(destinationDir))
+        {
+            Directory.CreateDirectory(destinationDir);
+        }
+
+        foreach (string file in Directory.GetFiles(sourceDir))
+        {
+            string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
+            File.Copy(file, destFile, true);
+        }
+
+        foreach (string dir in Directory.GetDirectories(sourceDir))
+        {
+            string destDir = Path.Combine(destinationDir, Path.GetFileName(dir));
+            CopyDirectory(dir, destDir);
+        }
     }
 
     static string FindIpaFileInFolder(string ipaFolder)
