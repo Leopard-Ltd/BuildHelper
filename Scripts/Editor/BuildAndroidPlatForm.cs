@@ -60,7 +60,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.Android,
             options          = BuildOptions.None,
-            locationPathName = this.GetBuildPath(outputFileName, data.androidInformation.BuildAppBundle()),
+            locationPathName = $"{CommonServices.GetBuildPath(outputFileName)}{(data.androidInformation.BuildAppBundle() ? ".aab" : ".apk")}",
             targetGroup      = BuildTargetGroup.Android
         };
 
@@ -118,5 +118,5 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.keyaliasPass      = data.androidInformation.aliasPass;
     }
 
-    private string GetBuildPath(string outputFileName, bool isAab = false) { return Path.GetFullPath($"../Build/Client/Android/{outputFileName}{(isAab ? ".aab" : ".apk")}"); }
+   
 }

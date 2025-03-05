@@ -109,28 +109,7 @@ public static class UploadIOSBuild
             CopyDirectory(dir, destDir);
         }
     }
-
-    static string FindIpaFileInFolder(string ipaFolder)
-    {
-        var result   = "";
-        var ipaFiles = Directory.GetFiles(ipaFolder, "*.ipa");
-
-        if (ipaFiles.Length > 0)
-        {
-            foreach (var file in ipaFiles)
-            {
-                CommonServices. LogMessage(file);
-            }
-
-            result = ipaFiles[0];
-        }
-        else
-        {
-            CommonServices. LogMessage("Can not found IpaFile");
-        }
-
-        return result;
-    }
+   
 
     static void RunCommand(string command)
     {

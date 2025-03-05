@@ -12,11 +12,16 @@
     {
         public static void UploadAAb()
         {
-            return;
             var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
 
-            var packageName        = PlayerSettings.applicationIdentifier;
-            var aabFilePath        = "app-release.aab";
+            if (!data.androidInformation.BuildAppBundle())
+                return;
+
+            var packageName = PlayerSettings.applicationIdentifier;
+
+            var outputFileName = CommonServices.FindFileInFolder(Path.GetFullPath($"../Build/Client/Android/"), ".aab");
+            var aabFilePath    = CommonServices.GetBuildPath(outputFileName);
+
             var serviceAccountJson = GetServicesAccountUpload();
 
             try
@@ -63,6 +68,10 @@
             }
         }
 
-        private static string GetServicesAccountUpload() { return ""; }
+        private static string GetServicesAccountUpload()
+        {
+            var filePath = CommonServices.GetPathBuildInformation("googleUploadServicesAccount.json");
+            return filePath;
+        }
     }
 }

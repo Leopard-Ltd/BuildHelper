@@ -40,7 +40,7 @@ public class CommonServices
         return service;
     }
 
-    public static Task<DriveService> GetService(string servicesAccountFileName="servicesAccount.json")
+    public static Task<DriveService> GetService(string servicesAccountFileName = "servicesAccount.json")
     {
         var servicesAccountPath = Application.dataPath;
         servicesAccountPath = servicesAccountPath.Replace("Assets", "");
@@ -63,7 +63,7 @@ public class CommonServices
     public static string GetPathBuildInformation(string fileName)
     {
         var filePath = Application.dataPath;
-        filePath = filePath.Replace("Assets", "");
+        filePath = filePath.Replace("/Assets", "");
         filePath = $"{filePath}/{fileName}";
 
         return filePath;
@@ -89,10 +89,46 @@ public class CommonServices
 
         return isBatchMode;
     }
-    
+
     public static void LogMessage(string message)
     {
         Debug.Log(message);
         Console.WriteLine(message);
+    }
+
+    public static string GetBuildPath(string outputFileName) { return Path.GetFullPath($"../Build/Client/Android/{outputFileName}"); }
+
+    public static string FindFileInFolder(string pathFolder, string searchPattern = "*.ipa")
+    {
+        if (!Directory.Exists(pathFolder))
+        {
+            LogMessage($"Folder '{pathFolder}' does not exist.");
+
+            return string.Empty;
+        }
+
+        try
+        {
+            var files = Directory.GetFiles(pathFolder);
+
+            if (files.Length > 0)
+            {
+                foreach (var file in files)
+                {
+                    if (!file.Contains(searchPattern)) continue;
+                    LogMessage($"Found file '{file}' with pattern '{searchPattern}' in '{pathFolder}'.");
+
+                    return file;
+                }
+            }
+
+            LogMessage($"Cannot find any file with pattern '{searchPattern}' in '{pathFolder}'.");
+        }
+        catch (Exception ex)
+        {
+            LogMessage($"Error while searching files: {ex.Message}");
+        }
+
+        return string.Empty;
     }
 }
