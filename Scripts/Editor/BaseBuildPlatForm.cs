@@ -17,6 +17,7 @@ public abstract class BaseBuildPlatForm
     public virtual void SetUpAndBuild(IBuildInformation data)
     {
         this.ResetBuildSettings();
+
         try
         {
             PlayerSettings.SplashScreen.showUnityLogo = false;
@@ -25,10 +26,10 @@ public abstract class BaseBuildPlatForm
         {
             Console.WriteLine(e);
         }
+
         this.BuildAddressable();
 
         EditorUserBuildSettings.development = data.IsDevelopment();
-        
     }
 
     private void FindAndSetGameVersion(IBuildInformation data)
@@ -51,14 +52,14 @@ public abstract class BaseBuildPlatForm
 
         if (!System.IO.File.Exists(blueprintConfig))
         {
-            Console.WriteLine("Blueprint config not found");
+            CommonServices.LogMessage("Blueprint config not found");
 
             return;
         }
 
         if (!data.DefineSymbol.Contains("SET_BLUEPRINT_PATH"))
         {
-            Console.WriteLine("No need to set blueprint path");
+            CommonServices.LogMessage("No need to set blueprint path");
 
             return;
         }
@@ -69,7 +70,7 @@ public abstract class BaseBuildPlatForm
 
         var result = Regex.Replace(content, pattern, replacement);
         System.IO.File.WriteAllText(blueprintConfig, result);
-        Console.WriteLine($"Reset blueprint path to {data.BlueprintPath}");
+        CommonServices.LogMessage($"Reset blueprint path to {data.BlueprintPath}");
     }
 
     private void ResetBuildSettings()
@@ -103,7 +104,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }

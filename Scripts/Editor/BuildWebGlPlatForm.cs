@@ -29,11 +29,12 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
             locationPathName = Path.GetFullPath($"../Build/Client/webgl/{data.webGlInformation.outputFileName}"),
             targetGroup      = BuildTargetGroup.WebGL
         };
+
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
-        Console.WriteLine(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
-        Debug.Log("Build Android Done");
+        CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
+        CommonServices.LogMessage("Build Android Done");
     }
 
     private void SetupOptional()

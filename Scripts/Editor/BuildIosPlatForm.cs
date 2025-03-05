@@ -50,7 +50,7 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
-        Console.WriteLine(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
+        CommonServices. LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
     }
 
     private string GetBuildPath(string outputFileName)

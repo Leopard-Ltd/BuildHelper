@@ -40,7 +40,7 @@ public static class UploadIOSBuild
 
         if (!Directory.Exists(sourceFolder))
         {
-            LogMessage("❌ Lỗi: Thư mục nguồn không tồn tại - " + sourceFolder);
+            CommonServices. LogMessage("❌ Lỗi: Thư mục nguồn không tồn tại - " + sourceFolder);
 
             return;
         }
@@ -53,7 +53,7 @@ public static class UploadIOSBuild
             }
             catch (Exception ex)
             {
-                LogMessage("❌ Lỗi tạo thư mục: " + ex.Message);
+                CommonServices. LogMessage("❌ Lỗi tạo thư mục: " + ex.Message);
 
                 return;
             }
@@ -66,11 +66,11 @@ public static class UploadIOSBuild
         try
         {
             CopyDirectory(sourceFolder, destinationPath);
-            LogMessage($"✅ Đã sao chép thành công: {destinationPath}");
+            CommonServices. LogMessage($"✅ Đã sao chép thành công: {destinationPath}");
         }
         catch (Exception ex)
         {
-            LogMessage("❌ Lỗi khi sao chép thư mục: " + ex.Message);
+            CommonServices. LogMessage("❌ Lỗi khi sao chép thư mục: " + ex.Message);
 
             return;
         }
@@ -86,7 +86,7 @@ public static class UploadIOSBuild
         }
         catch (Exception ex)
         {
-            LogMessage("❌ Lỗi khi mở thư mục: " + ex.Message);
+            CommonServices. LogMessage("❌ Lỗi khi mở thư mục: " + ex.Message);
         }
     }
 
@@ -119,14 +119,14 @@ public static class UploadIOSBuild
         {
             foreach (var file in ipaFiles)
             {
-                LogMessage(file);
+                CommonServices. LogMessage(file);
             }
 
             result = ipaFiles[0];
         }
         else
         {
-            LogMessage("Can not found IpaFile");
+            CommonServices. LogMessage("Can not found IpaFile");
         }
 
         return result;
@@ -142,8 +142,8 @@ public static class UploadIOSBuild
         process.StartInfo.UseShellExecute        = false;
         process.StartInfo.CreateNoWindow         = true;
 
-        process.OutputDataReceived += (sender, args) => LogMessage(args.Data + " ");
-        process.ErrorDataReceived  += (sender, args) => LogMessage(args.Data + " ");
+        process.OutputDataReceived += (sender, args) =>CommonServices. LogMessage(args.Data + " ");
+        process.ErrorDataReceived  += (sender, args) => CommonServices. LogMessage(args.Data + " ");
 
         process.Start();
         process.BeginOutputReadLine();
@@ -153,9 +153,5 @@ public static class UploadIOSBuild
         Console.WriteLine("\n[INFO] Upload finished!");
     }
 
-    static void LogMessage(string message)
-    {
-        Console.WriteLine(message);
-        Debug.Log(message);
-    }
+    
 }

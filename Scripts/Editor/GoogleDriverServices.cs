@@ -19,7 +19,7 @@ public class GoogleDriverServices
     [MenuItem("Build/UploadFile")]
     static void TestUpload() { UploadAndroidPlatform(); }
 
-    static async Task RunNow()
+    static void RunNow()
     {
         // CreateFolder("testFolder", "1nteHm_RihLOJZ0IsgBfshHkuqiGIaxxN", service);
     }
@@ -113,9 +113,9 @@ public class GoogleDriverServices
         var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
         var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
         var internalFilePath  = $"{GetBuildFilePath()}Client/Android/{outputFileName}";
-        var apkFilePath = $"{internalFilePath}.apk";
-        var aabFilePath = $"{internalFilePath}.aab";
-        var zipFilePath = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
+        var apkFilePath       = $"{internalFilePath}.apk";
+        var aabFilePath       = $"{internalFilePath}.aab";
+        var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
 
         if (!System.IO.File.Exists(apkFilePath))
         {

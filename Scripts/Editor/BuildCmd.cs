@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Editor;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -37,7 +39,7 @@ public class BuildCmd
     {
         var buildAndroidPlatForm = new BuildAndroidPlatForm();
         var data                 = new BuildAndroidInformation();
-        var scriptDefineSymbol   = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android);
+        var scriptDefineSymbol   = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.Android);
         data.androidInformation.scriptDefinition = scriptDefineSymbol;
         data.androidInformation.outputFileName   = "output-1.0.0-1";
 
@@ -65,6 +67,7 @@ public class BuildCmd
             OnAfterExecute(isBatchMode, () =>
             {
                 var folderPath = Path.GetFullPath($"../Build/Client/Android/");
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     // Windows
@@ -238,6 +241,16 @@ public class BuildCmd
         OnAfterExecute(isBatchMode);
     }
 
+    [MenuItem("Build/UploadAAbToGooglePlay")]
+    static void UploadAAbToGooglePlay()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+
+        UploadAABToGooglePlay.UploadAAb();
+
+        OnAfterExecute(isBatchMode);
+    }
+
     private static void WriteStep(StreamWriter file, BuildStep step)
     {
         file.WriteLine($"Step {step.name}  Depth: {step.depth} Time: {step.duration}");
@@ -250,7 +263,7 @@ public class BuildCmd
         file.WriteLine();
     }
 
-    static void OnAfterExecute(bool isBatchMode,Action action = null)
+    static void OnAfterExecute(bool isBatchMode, Action action = null)
     {
         if (isBatchMode)
         {

@@ -40,11 +40,11 @@ public class CommonServices
         return service;
     }
 
-    public static async Task<DriveService> GetService()
+    public static Task<DriveService> GetService(string servicesAccountFileName="servicesAccount.json")
     {
         var servicesAccountPath = Application.dataPath;
         servicesAccountPath = servicesAccountPath.Replace("Assets", "");
-        servicesAccountPath = $"{servicesAccountPath}/servicesAccount.json";
+        servicesAccountPath = $"{servicesAccountPath}/{servicesAccountFileName}";
         GoogleCredential credential;
 
         using (var stream = new FileStream(servicesAccountPath, FileMode.Open, FileAccess.Read))
@@ -53,11 +53,11 @@ public class CommonServices
                 .CreateScoped(DriveService.Scope.Drive);
         }
 
-        return new DriveService(new BaseClientService.Initializer()
+        return Task.FromResult(new DriveService(new BaseClientService.Initializer()
         {
             HttpClientInitializer = credential,
             ApplicationName       = "JenkinsBuild",
-        });
+        }));
     }
 
     public static string GetPathBuildInformation(string fileName)
@@ -85,8 +85,14 @@ public class CommonServices
     {
         var args        = Environment.GetCommandLineArgs().ToList();
         var isBatchMode = args.Contains("-batchmode");
-        Console.WriteLine($"Command Line Ne {string.Join(",", args)}, {isBatchMode}");
+        LogMessage($"Command Line Ne {string.Join(",", args)}, {isBatchMode}");
 
         return isBatchMode;
+    }
+    
+    public static void LogMessage(string message)
+    {
+        Debug.Log(message);
+        Console.WriteLine(message);
     }
 }
