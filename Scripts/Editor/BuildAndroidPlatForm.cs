@@ -96,10 +96,9 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.minifyRelease = data.androidInformation.IsMinify();
 
 #if UNITY_6000_0_OR_NEWER
-        PlayerSettings.Android.splitApplicationBinary = data.androidInformation.BuildAppBundle();
-
+        PlayerSettings.Android.splitApplicationBinary = data.androidInformation.IsSplitBinary();
 #else
-        PlayerSettings.Android.useAPKExpansionFiles = data.androidInformation.BuildAppBundle();
+        PlayerSettings.Android.useAPKExpansionFiles = data.androidInformation.IsSplitBinary();
 #endif
     }
 

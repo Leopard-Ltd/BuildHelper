@@ -31,6 +31,7 @@ public class AndroidInformation
     public string        blueprintPath      = "BlueprintData";
     public string        productName        = "";
     public string        minify             = "true";
+    public string        splitBinary        = "true";
 
     public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }
@@ -39,6 +40,7 @@ public class AndroidInformation
 
     public bool IsDevelopment() { return this.isBuildDevelopment.Equals("true"); }
     public bool IsMinify()      { return this.minify.Equals("true"); }
+    public bool IsSplitBinary() { return this.splitBinary.Equals("true"); }
 }
 
 [Serializable]
