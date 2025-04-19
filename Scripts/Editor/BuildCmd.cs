@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Editor;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -245,8 +244,10 @@ public class BuildCmd
     static void UploadAAbToGooglePlay()
     {
         var isBatchMode = CommonServices.IsBatchMode();
-
+#if UNITY_ANDROID
+        
         UploadAABToGooglePlay.UploadAAb();
+#endif
 
         OnAfterExecute(isBatchMode);
     }

@@ -1,5 +1,5 @@
-﻿namespace Editor
-{
+﻿#if UNITY_ANDROID
+
     using System;
     using System.IO;
     using Google.Apis.AndroidPublisher.v3;
@@ -71,7 +71,9 @@
         private static string GetServicesAccountUpload()
         {
             var filePath = CommonServices.GetPathBuildInformation("googleUploadServicesAccount.json");
+
             return filePath;
         }
     }
-}
+
+#endif
