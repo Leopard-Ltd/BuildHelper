@@ -70,25 +70,37 @@ public class GoogleDriverServices
 
     static async void UploadWebGlPlatForm()
     {
-        var isBatchMode = CommonServices.IsBatchMode();
-        var path        = Application.dataPath;
-        var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
-        var zipFilePath = $"{GetBuildFilePath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
-        var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
-        var uploadInfo  = path.Replace("Assets", "");
-        //read from file
-        var folderId          = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
-        var environmentFolder = await CreateFolder(webglModel.webGlInformation.buildEnvironment, folderId, service);
-        var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
-        var zipFile           = "";
-        await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, (x) => { zipFile = x; });
-        var googleLinkPath = path.Replace("Assets", "");
-        googleLinkPath = $"{googleLinkPath}googleInfo.txt";
-        System.IO.File.WriteAllText(googleLinkPath, zipFile);
-
-        if (isBatchMode)
+        try
         {
-            EditorApplication.Exit(0);
+            var isBatchMode = CommonServices.IsBatchMode();
+            var path        = Application.dataPath;
+            var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+            var zipFilePath = $"{GetBuildFilePath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
+            var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
+            var uploadInfo  = path.Replace("Assets", "");
+            //read from file
+            var folderId          = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+            var environmentFolder = await CreateFolder(webglModel.webGlInformation.buildEnvironment, folderId, service);
+            var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
+
+            var list = new List<string> { $"https://drive.google.com/drive/folders/{folderId}" };
+
+            var zipFile = "";
+            await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, (x) => { zipFile = x; });
+            list.Add(zipFile);
+            var googleLinkPath = path.Replace("Assets", "");
+            googleLinkPath = $"{googleLinkPath}googleInfo.txt";
+
+            System.IO.File.WriteAllText(googleLinkPath, string.Join(",", list));
+
+            if (isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
+        catch (Exception e)
+        {
+          //ignore
         }
     }
 
@@ -155,7 +167,7 @@ public class GoogleDriverServices
 
         await Task.WhenAll(listTask);
         listTask.Clear();
-        var list = new List<string>();
+        var list = new List<string> { $"https://drive.google.com/drive/folders/{folderId}" };
 
         if (!string.IsNullOrEmpty(urlApk))
         {
