@@ -145,11 +145,13 @@ public class BuildCmd
 
         try
         {
+#if UNITY_WEBGL
             var buildWebGlPlatForm = new BuildWebGlPlatForm();
 
             buildWebGlPlatForm.SetUpAndBuild(data);
 
             OnAfterExecute(isBatchMode);
+#endif
         }
         catch (Exception e)
         {
@@ -245,7 +247,7 @@ public class BuildCmd
     {
         var isBatchMode = CommonServices.IsBatchMode();
 #if UNITY_ANDROID
-        
+
         UploadAABToGooglePlay.UploadAAb();
 #endif
 

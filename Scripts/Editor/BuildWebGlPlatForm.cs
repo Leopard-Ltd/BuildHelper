@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿#if UNITY_WEBGL
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -12,6 +13,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         var data = (BuildWebGlInformation)baseData;
 
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
+        PlayerSettings.stripEngineCode             = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
         this.SetupOptional();
         //auto profile
@@ -22,11 +24,11 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 
         var buildPlayerOptions = new BuildPlayerOptions
         {
-            scenes           = this.LoadSceneOnPath(),
-            target           = BuildTarget.WebGL,
-            options          = BuildOptions.None,
+            scenes = this.LoadSceneOnPath(),
+            target = BuildTarget.WebGL,
+            options = BuildOptions.None,
             locationPathName = Path.GetFullPath($"../Build/Client/webgl/{data.webGlInformation.outputFileName}"),
-            targetGroup      = BuildTargetGroup.WebGL
+            targetGroup = BuildTargetGroup.WebGL
         };
 
         this.PreprocessBuild(data);
@@ -36,17 +38,21 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         CommonServices.LogMessage("Build Webgl Done");
     }
 
+    protected override void SetAllGroupsToLZMA()
+    {
+        
+    }
+
     private void SetupOptional()
     {
-#if UNITY_WEBGL
         PlayerSettings.WebGL.compressionFormat     = WebGLCompressionFormat.Gzip;
         PlayerSettings.WebGL.decompressionFallback = true;
         PlayerSettings.runInBackground             = true;
         PlayerSettings.WebGL.powerPreference       = WebGLPowerPreference.HighPerformance;
         PlayerSettings.WebGL.dataCaching           = true;
         PlayerSettings.WebGL.exceptionSupport      = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
+        UserBuildSettings.codeOptimization         = WasmCodeOptimization.BuildTimes;
 #if UNITY_6000_0_OR_NEWER
-
         // PlayerSettings.WebGL.webAssemblyTable  = true;
         // PlayerSettings.WebGL.webAssemblyBigInt = true;
 #endif
@@ -54,17 +60,17 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 #if FACEBOOK_INSTANT_GAME
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled; // Disable compression for FBInstant game
         PlayerSettings.WebGL.decompressionFallback = false; // Disable compression for FBInstant game
-        PlayerSettings.runInBackground = false;
+        PlayerSettings.runInBackground = false; 
+        //UserBuildSettings.codeOptimization = WasmCodeOptimization.DiskSize;
 #endif
 #if UNITY_2022_1_OR_NEWER
         PlayerSettings.WebGL.initialMemorySize = 64;
-        UserBuildSettings.codeOptimization     = WasmCodeOptimization.DiskSize;
-        PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.WebGL, Il2CppCodeGeneration.OptimizeSize);
 #endif
 #if WEBGL_PRODCTION
     PlayerSettings.WebGL.showDiagnostics = false;
     PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
 #endif
-#endif
+
     }
 }
+#endif

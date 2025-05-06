@@ -90,7 +90,7 @@ public abstract class BaseBuildPlatForm
         this.SetupBlueprintPath(data);
     }
 
-    private void SetAllGroupsToLZMA()
+    protected virtual void SetAllGroupsToLZMA()
     {
 #if ADDRESSABLE
         // Access the addressable asset settings
