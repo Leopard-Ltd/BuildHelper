@@ -15,6 +15,7 @@ public class GoogleDriverServices
     static List<Task> listTask = new List<Task>();
     static string     ApkFile  = "application/vnd.android.package-archive";
     static string     ZipFile  = "application/zip";
+    static string     IpaFile  = "application/x-itunes-ipa";
 
     [MenuItem("Build/UploadFile")]
     static void TestUpload() { UploadAndroidPlatform(); }
@@ -24,7 +25,7 @@ public class GoogleDriverServices
         // CreateFolder("testFolder", "1nteHm_RihLOJZ0IsgBfshHkuqiGIaxxN", service);
     }
 
-    static async Task DeleteAllFromServicesAccount()
+    static async void DeleteAllFromServicesAccount()
     {
         var servicesAccountModel = CommonServices.GetDataModel<ServicesAccountModel>(CommonServices.GetPathBuildInformation("servicesAccount.json"));
         var service              = await CommonServices.GetDriveServices();
@@ -100,7 +101,7 @@ public class GoogleDriverServices
         }
         catch (Exception e)
         {
-          //ignore
+            //ignore
         }
     }
 
@@ -112,6 +113,62 @@ public class GoogleDriverServices
         var version = System.IO.File.ReadAllText(buildversionPath);
 
         return version;
+    }
+
+    [MenuItem("Build/UploadIos")]
+    static async void UploadIosPlatform()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+
+        try
+        {
+            var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
+            var path                = Application.dataPath;
+            var rootPath            = path.Replace("Assets", "");
+            var tmp                 = rootPath.Split("/");
+            var buildPath           = "";
+            var service             = await CommonServices.GetDriveServices(buildIosInformation.iosInformation.IsUseServicesAccount());
+            var outputFileName      = buildIosInformation.iosInformation.outputFileName;
+
+            for (var i = 0; i < tmp.Length - 2; i++)
+            {
+                buildPath += tmp[i] + "/";
+            }
+
+            //read from file
+            var ipaPath        = $"{buildPath}Build/Client/ios/{buildIosInformation.iosInformation.outputFileName}/{buildIosInformation.iosInformation.outputFileName}.ipa/";
+            var ipaFilePath    = CommonServices.FindFileInFolder(ipaPath);
+            var folderId       = await System.IO.File.ReadAllTextAsync($"{rootPath}/uploadInfo.txt");
+            var platFormFolder = await CreateFolder("ios", folderId, service);
+            var versionFolder  = await CreateFolder($"{outputFileName}-{buildIosInformation.iosInformation.buildNumber}", platFormFolder, service);
+            //find Ipa file in ipaPath
+            var ipaLink = "";
+            CommonServices.LogMessage($"Start upload");
+            await UploadFileInternal(ipaFilePath, versionFolder, service, IpaFile, (x) => { ipaLink = x; });
+
+            var list = new List<string> { $"https://drive.google.com/drive/folders/{folderId}" };
+
+            if (!string.IsNullOrEmpty(ipaLink))
+            {
+                list.Add(ipaLink);
+            }
+
+            var googleLinkPath = path.Replace("Assets", "");
+            googleLinkPath = $"{googleLinkPath}googleInfo.txt";
+            await System.IO.File.WriteAllTextAsync(googleLinkPath, string.Join(",", list));
+            CommonServices.LogMessage($"Upload Finish");
+        }
+        catch (Exception e)
+        {
+            CommonServices.LogMessage($"Upload Error: {e.Message}");
+        }
+        finally
+        {
+            if (isBatchMode)
+            {
+                EditorApplication.Exit(0);
+            }
+        }
     }
 
     static async void UploadAndroidPlatform()
@@ -217,7 +274,7 @@ public class GoogleDriverServices
         return file.Id;
     }
 
-    private static async Task ShareWriter(DriveService service, string folderId, string userEmail)
+    private static async void ShareWriter(DriveService service, string folderId, string userEmail)
     {
         var permission = new Permission
         {

@@ -109,7 +109,7 @@ public class CommonServices
 
         try
         {
-            var files = Directory.GetFiles(pathFolder);
+            var files = Directory.GetFiles(pathFolder, searchPattern, SearchOption.TopDirectoryOnly);
 
             if (files.Length > 0)
             {
