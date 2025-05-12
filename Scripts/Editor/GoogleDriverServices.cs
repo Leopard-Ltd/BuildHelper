@@ -102,6 +102,7 @@ public class GoogleDriverServices
         catch (Exception e)
         {
             //ignore
+            throw new Exception(e.Message);
         }
     }
 
@@ -161,6 +162,7 @@ public class GoogleDriverServices
         catch (Exception e)
         {
             CommonServices.LogMessage($"Upload Error: {e.Message}");
+            throw new Exception(e.Message);
         }
         finally
         {

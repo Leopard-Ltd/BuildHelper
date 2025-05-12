@@ -28,6 +28,8 @@ public class IosInformation
     public string        shouldUploadToAppStore = "false";
     public string        accountAppleId         = "";
     public string        accountPassword        = "";
+    public string        fastLanePath           = "";
+    public string        fastLaneSession        = "";
 
     public bool IsUploadAppstoreConnect() { return this.shouldUploadToAppStore.Equals("true"); }
 

@@ -85,7 +85,7 @@ public class CommonServices
     {
         var args        = Environment.GetCommandLineArgs().ToList();
         var isBatchMode = args.Contains("-batchmode");
-        LogMessage($"Command Line Ne {string.Join(",", args)}, {isBatchMode}");
+        //LogMessage($"Command Line Ne {string.Join(",", args)}, {isBatchMode}");
 
         return isBatchMode;
     }
@@ -126,5 +126,26 @@ public class CommonServices
         }
 
         return string.Empty;
+    }
+
+    public static string GetRootPath()
+    {
+        var path           = Application.dataPath;
+        var rootPath       = path.Replace("Assets", "");
+        var tmp            = rootPath.Split("/");
+        var buildPath      = "";
+     
+
+        for (var i = 0; i < tmp.Length - 2; i++)
+        {
+            buildPath += tmp[i] + "/";
+        }
+
+        return buildPath;
+    }
+
+    public static string GetProjectPath()
+    {
+       return Path.GetFullPath(Application.dataPath + "/..");
     }
 }
