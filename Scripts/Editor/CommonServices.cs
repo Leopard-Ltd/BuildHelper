@@ -103,7 +103,6 @@ public class CommonServices
         if (!Directory.Exists(pathFolder))
         {
             LogMessage($"Folder '{pathFolder}' does not exist.");
-
             return string.Empty;
         }
 
@@ -113,13 +112,9 @@ public class CommonServices
 
             if (files.Length > 0)
             {
-                foreach (var file in files)
-                {
-                    if (!file.Contains(searchPattern)) continue;
-                    LogMessage($"Found file '{file}' with pattern '{searchPattern}' in '{pathFolder}'.");
-
-                    return file;
-                }
+                var foundFile = files[0];
+                LogMessage($"Found file '{foundFile}' with pattern '{searchPattern}' in '{pathFolder}'.");
+                return foundFile;
             }
 
             LogMessage($"Cannot find any file with pattern '{searchPattern}' in '{pathFolder}'.");
@@ -127,6 +122,7 @@ public class CommonServices
         catch (Exception ex)
         {
             LogMessage($"Error while searching files: {ex.Message}");
+            throw; 
         }
 
         return string.Empty;
