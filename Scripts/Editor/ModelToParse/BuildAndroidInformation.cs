@@ -12,23 +12,16 @@ public class BuildAndroidInformation : IBuildInformation
 }
 
 [Serializable]
-public class AndroidInformation
+public class AndroidInformation : BaseBuildData
 {
-    public string        scriptDefinition   = "TMP";
     public string        keyName            = "user.keystore";
     public string        keyPass            = "123456";
     public string        aliasName          = "hai";
     public string        aliasPass          = "123456";
-    public string        outputFileName     = "output";
-    public string        buildNumber        = "1";
     public string        buildAppBundle     = "false";
     public CustomVersion customVersion      = new CustomVersion();
-    public string        optimizeSizeBuild  = "false";
-    public string        isBuildDevelopment = "false";
     public string        bundleIdentifier   = "";
-    public string        buildEnvironment   = "Dev";
     public string        useServicesAccount = "true";
-    public string        blueprintPath      = "BlueprintData";
     public string        productName        = "";
     public string        minify             = "true";
     public string        splitBinary        = "true";

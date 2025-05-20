@@ -1,4 +1,6 @@
-﻿[System.Serializable]
+﻿using System;
+
+[Serializable]
 public class BuildWebGlInformation : IBuildInformation
 {
     public WebGlInformation webGlInformation = new WebGlInformation();
@@ -9,17 +11,10 @@ public class BuildWebGlInformation : IBuildInformation
     public string VersionCode     => "1";
 }
 
-[System.Serializable]
-public class WebGlInformation
+[Serializable]
+public class WebGlInformation : BaseBuildData
 {
-    public string scriptDefinition   = "TMP";
-    public string outputFileName     = "output";
-    public string buildNumber        = "1";
-    public string optimizeSizeBuild  = "false";
-    public string isBuildDevelopment = "false";
-    public string buildEnvironment   = "Dev";
     public string useServicesAccount = "true";
-    public string blueprintPath      = "BlueprintData";
 
     public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool OptimizeSizeBuild()    { return this.optimizeSizeBuild.Equals("true"); }

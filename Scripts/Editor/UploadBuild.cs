@@ -55,20 +55,6 @@ public class UploadBuild
         }
     }
 
-    static string GetBuildFilePath()
-    {
-        var path  = Application.dataPath;
-        var tmp   = path.Split('/');
-        var final = "";
-
-        for (int i = 0; i < tmp.Length - 2; i++)
-        {
-            final += tmp[i] + "/";
-        }
-
-        return $"{final}Build/";
-    }
-
     static async void UploadGoogleDriveWebGlPlatForm()
     {
         try
@@ -76,7 +62,7 @@ public class UploadBuild
             var isBatchMode = CommonServices.IsBatchMode();
             var path        = Application.dataPath;
             var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
-            var zipFilePath = $"{GetBuildFilePath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
+            var zipFilePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
             var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
             var uploadInfo  = path.Replace("Assets", "");
             //read from file
@@ -104,16 +90,6 @@ public class UploadBuild
             //ignore
             throw new Exception(e.Message);
         }
-    }
-
-    static string GetFinalBuildVersion()
-    {
-        var buildversionPath = Application.dataPath;
-        buildversionPath = buildversionPath.Replace("Assets", "buildversion.txt");
-
-        var version = System.IO.File.ReadAllText(buildversionPath);
-
-        return version;
     }
 
     [MenuItem("Build/UploadIos")]
@@ -162,6 +138,7 @@ public class UploadBuild
         catch (Exception e)
         {
             CommonServices.LogMessage($"Upload Error: {e.Message}");
+
             throw new Exception(e.Message);
         }
         finally
@@ -180,10 +157,10 @@ public class UploadBuild
 
         var path = Application.dataPath;
 
-        var finalBuildVersion = GetFinalBuildVersion();
+        var finalBuildVersion = CommonServices.GetFinalAndroidBuildVersion();
         var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
         var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
-        var internalFilePath  = $"{GetBuildFilePath()}Client/Android/{outputFileName}";
+        var internalFilePath  = $"{CommonServices.GetBuildPath()}Client/Android/{outputFileName}";
         var apkFilePath       = $"{internalFilePath}.apk";
         var aabFilePath       = $"{internalFilePath}.aab";
         var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";

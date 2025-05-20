@@ -13,7 +13,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         var data = (BuildWebGlInformation)baseData;
 
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
-        PlayerSettings.stripEngineCode             = true;
+        PlayerSettings.stripEngineCode = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
         this.SetupOptional();
         //auto profile
@@ -24,11 +24,11 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 
         var buildPlayerOptions = new BuildPlayerOptions
         {
-            scenes = this.LoadSceneOnPath(),
-            target = BuildTarget.WebGL,
-            options = BuildOptions.None,
-            locationPathName = Path.GetFullPath($"../Build/Client/webgl/{data.webGlInformation.outputFileName}"),
-            targetGroup = BuildTargetGroup.WebGL
+            scenes           = this.LoadSceneOnPath(),
+            target           = BuildTarget.WebGL,
+            options          = BuildOptions.None,
+            locationPathName = $"{CommonServices.GetBuildPath()}/Client/webgl/{data.webGlInformation.outputFileName}",
+            targetGroup      = BuildTargetGroup.WebGL
         };
 
         this.PreprocessBuild(data);
@@ -38,10 +38,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         CommonServices.LogMessage("Build Webgl Done");
     }
 
-    protected override void SetAllGroupsToLZMA()
-    {
-        
-    }
+    protected override void SetAllGroupsToLZMA() { }
 
     private void SetupOptional()
     {
@@ -57,7 +54,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         // PlayerSettings.WebGL.webAssemblyBigInt = true;
 #endif
 
-#if FACEBOOK_INSTANT_GAME
+#if DISABLE_COMPRESS
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled; // Disable compression for FBInstant game
         PlayerSettings.WebGL.decompressionFallback = false; // Disable compression for FBInstant game
         PlayerSettings.runInBackground = false; 
@@ -70,7 +67,6 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
     PlayerSettings.WebGL.showDiagnostics = false;
     PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
 #endif
-
     }
 }
 #endif

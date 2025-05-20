@@ -96,13 +96,14 @@ public class CommonServices
         Console.WriteLine(message);
     }
 
-    public static string GetBuildPath(string outputFileName) { return Path.GetFullPath($"../Build/Client/Android/{outputFileName}"); }
+    public static string GetBuildPath(string outputFileName, string platform = "Android") { return Path.GetFullPath($"../Build/Client/{platform}/{outputFileName}"); }
 
     public static string FindFileInFolder(string pathFolder, string searchPattern = "*.ipa")
     {
         if (!Directory.Exists(pathFolder))
         {
             LogMessage($"Folder '{pathFolder}' does not exist.");
+
             return string.Empty;
         }
 
@@ -114,6 +115,7 @@ public class CommonServices
             {
                 var foundFile = files[0];
                 LogMessage($"Found file '{foundFile}' with pattern '{searchPattern}' in '{pathFolder}'.");
+
                 return foundFile;
             }
 
@@ -122,19 +124,29 @@ public class CommonServices
         catch (Exception ex)
         {
             LogMessage($"Error while searching files: {ex.Message}");
-            throw; 
+
+            throw;
         }
 
         return string.Empty;
     }
 
+    public static string GetFinalAndroidBuildVersion()
+    {
+        var buildversionPath = Application.dataPath;
+        buildversionPath = buildversionPath.Replace("Assets", "buildversion.txt");
+
+        var version = System.IO.File.ReadAllText(buildversionPath);
+
+        return version;
+    }
+
     public static string GetRootPath()
     {
-        var path           = Application.dataPath;
-        var rootPath       = path.Replace("Assets", "");
-        var tmp            = rootPath.Split("/");
-        var buildPath      = "";
-     
+        var path      = Application.dataPath;
+        var rootPath  = path.Replace("Assets", "");
+        var tmp       = rootPath.Split("/");
+        var buildPath = "";
 
         for (var i = 0; i < tmp.Length - 2; i++)
         {
@@ -144,8 +156,35 @@ public class CommonServices
         return buildPath;
     }
 
-    public static string GetProjectPath()
+    public static string GetBuildPath()
     {
-       return Path.GetFullPath(Application.dataPath + "/..");
+        var path  = Application.dataPath;
+        var tmp   = path.Split('/');
+        var final = "";
+        var count = 2;
+
+        if (ValidBuildPath())
+        {
+            count = 1;
+        }
+
+        for (var i = 0; i < tmp.Length - count; i++)
+        {
+            final += tmp[i] + "/";
+        }
+
+        return $"{final}Build/";
     }
+
+    static bool ValidBuildPath(string keyword = "JenkinsFiles")
+    {
+        var projectPath = GetProjectPath();
+
+        var matchingFolders = Directory.GetDirectories(projectPath, "*", SearchOption.AllDirectories)
+            .Where(folder => Path.GetFileName(folder).ToLower().IndexOf(keyword.ToLower(), StringComparison.OrdinalIgnoreCase) >= 0);
+
+        return matchingFolders.Any();
+    }
+
+    public static string GetProjectPath() { return Path.GetFullPath(Application.dataPath + "/.."); }
 }

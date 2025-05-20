@@ -12,18 +12,12 @@ public class BuildIosInformation : IBuildInformation
 }
 
 [Serializable]
-public class IosInformation
+public class IosInformation : BaseBuildData
 {
-    public string        scriptDefinition       = "TMP";
-    public string        outputFileName         = "output";
-    public string        buildNumber            = "1";
     public CustomVersion customVersion          = new CustomVersion();
-    public string        optimizeSizeBuild      = "false";
-    public string        isBuildDevelopment     = "false";
     public string        signingTeamId          = "";
     public string        bundleIdentifier       = "com.abc.test";
     public string        useServicesAccount     = "true";
-    public string        blueprintPath          = "BlueprintData";
     public string        productName            = "";
     public string        shouldUploadToAppStore = "false";
     public string        accountAppleId         = "";
