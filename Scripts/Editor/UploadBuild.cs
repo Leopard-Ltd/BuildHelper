@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using File = Google.Apis.Drive.v3.Data.File;
 
-public class GoogleDriverServices
+public class UploadBuild
 {
     static List<Task> listTask = new List<Task>();
     static string     ApkFile  = "application/vnd.android.package-archive";
@@ -18,7 +18,7 @@ public class GoogleDriverServices
     static string     IpaFile  = "application/x-itunes-ipa";
 
     [MenuItem("Build/UploadFile")]
-    static void TestUpload() { UploadAndroidPlatform(); }
+    static void TestUpload() { UploadGoogleDriveAndroidPlatform(); }
 
     static void RunNow()
     {
@@ -69,7 +69,7 @@ public class GoogleDriverServices
         return $"{final}Build/";
     }
 
-    static async void UploadWebGlPlatForm()
+    static async void UploadGoogleDriveWebGlPlatForm()
     {
         try
         {
@@ -117,7 +117,7 @@ public class GoogleDriverServices
     }
 
     [MenuItem("Build/UploadIos")]
-    static async void UploadIosPlatform()
+    static async void UploadGoogleDriveIosPlatform()
     {
         var isBatchMode = CommonServices.IsBatchMode();
 
@@ -173,7 +173,7 @@ public class GoogleDriverServices
         }
     }
 
-    static async void UploadAndroidPlatform()
+    static async void UploadGoogleDriveAndroidPlatform()
     {
         var isBatchMode             = CommonServices.IsBatchMode();
         var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
