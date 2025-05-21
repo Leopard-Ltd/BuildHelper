@@ -27,7 +27,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.WebGL,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath()}/Client/webgl/{data.webGlInformation.outputFileName}",
+            locationPathName = $"{CommonServices.GetBuildPath(data.webGlInformation.outputFileName,"webgl")}",
             targetGroup      = BuildTargetGroup.WebGL
         };
 

@@ -61,7 +61,7 @@ public class IOSPostProcessingBuildTool
 
     private static void SetProjectConfig(string pathToBuiltProject)
     {
-        var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
+        var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
         var projectPath = pathToBuiltProject + "/Unity-iPhone.xcodeproj/project.pbxproj";
         var pbxProject  = new PBXProject();
         pbxProject.ReadFromString(File.ReadAllText(projectPath));
@@ -118,7 +118,7 @@ public class IOSPostProcessingBuildTool
 
     private static void SetPlistConfig(string pathToBuiltProject)
     {
-        var data = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
+        var data = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
 
         var plistPath = pathToBuiltProject + "/Info.plist";
         var plist     = new PlistDocument();

@@ -48,7 +48,7 @@ public class BuildCmd
     [MenuItem("Build/Build Android")]
     static void BuildAndroid()
     {
-        var data        = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
+        var data        = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
 
         if (data == null)
@@ -105,7 +105,7 @@ public class BuildCmd
     [MenuItem("Build/Build Ios")]
     static void BuildIos()
     {
-        var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
+        var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
 
         if (data == null)
@@ -133,7 +133,7 @@ public class BuildCmd
     [MenuItem("Build/Build WebGl")]
     static void BuildWebGL()
     {
-        var data        = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+        var data        = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
 
         if (data == null)

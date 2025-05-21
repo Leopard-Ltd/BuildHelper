@@ -16,7 +16,7 @@ public class UploadBuildTelegram
 
         try
         {
-            var webglModel = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+            var webglModel = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
 
             foreach (var item in webglModel.webGlInformation.telegramInfos)
             {
@@ -109,7 +109,7 @@ public class UploadBuildTelegram
 
         try
         {
-            var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
+            var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
             var listTask                = new List<Task>();
 
             foreach (var item in buildAndroidInformation.androidInformation.telegramInfos)

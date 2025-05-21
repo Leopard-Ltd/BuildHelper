@@ -27,7 +27,7 @@ public class UploadBuild
 
     static async void DeleteAllFromServicesAccount()
     {
-        var servicesAccountModel = CommonServices.GetDataModel<ServicesAccountModel>(CommonServices.GetPathBuildInformation("servicesAccount.json"));
+        var servicesAccountModel = CommonServices.GetDataModel<ServicesAccountModel>(CommonServices.GetPathInformation("servicesAccount.json"));
         var service              = await CommonServices.GetDriveServices();
         var listRequest          = service.Files.List();
         listRequest.Fields = "nextPageToken, files(id, name, owners)";
@@ -61,12 +61,11 @@ public class UploadBuild
         {
             var isBatchMode = CommonServices.IsBatchMode();
             var path        = Application.dataPath;
-            var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathBuildInformation("WebGlInformation.json"));
+            var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
             var zipFilePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
             var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
-            var uploadInfo  = path.Replace("Assets", "");
             //read from file
-            var folderId          = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+            var folderId          = System.IO.File.ReadAllText($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
             var environmentFolder = await CreateFolder(webglModel.webGlInformation.buildEnvironment, folderId, service);
             var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
 
@@ -75,10 +74,8 @@ public class UploadBuild
             var zipFile = "";
             await UploadFileInternal(zipFilePath, platFormFolder, service, ZipFile, (x) => { zipFile = x; });
             list.Add(zipFile);
-            var googleLinkPath = path.Replace("Assets", "");
-            googleLinkPath = $"{googleLinkPath}googleInfo.txt";
 
-            System.IO.File.WriteAllText(googleLinkPath, string.Join(",", list));
+            System.IO.File.WriteAllText(CommonServices.GetPathInformation("googleInfo.txt"), string.Join(",", list));
 
             if (isBatchMode)
             {
@@ -99,23 +96,13 @@ public class UploadBuild
 
         try
         {
-            var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathBuildInformation("IosInformation.json"));
-            var path                = Application.dataPath;
-            var rootPath            = path.Replace("Assets", "");
-            var tmp                 = rootPath.Split("/");
-            var buildPath           = "";
+            var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
             var service             = await CommonServices.GetDriveServices(buildIosInformation.iosInformation.IsUseServicesAccount());
             var outputFileName      = buildIosInformation.iosInformation.outputFileName;
-
-            for (var i = 0; i < tmp.Length - 2; i++)
-            {
-                buildPath += tmp[i] + "/";
-            }
-
             //read from file
-            var ipaPath        = $"{buildPath}Build/Client/ios/{buildIosInformation.iosInformation.outputFileName}/{buildIosInformation.iosInformation.outputFileName}.ipa/";
+            var ipaPath        = $"{CommonServices.GetBuildPath()}/Client/ios/{buildIosInformation.iosInformation.outputFileName}/{buildIosInformation.iosInformation.outputFileName}.ipa/";
             var ipaFilePath    = CommonServices.FindFileInFolder(ipaPath);
-            var folderId       = await System.IO.File.ReadAllTextAsync($"{rootPath}/uploadInfo.txt");
+            var folderId       = await System.IO.File.ReadAllTextAsync($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
             var platFormFolder = await CreateFolder("ios", folderId, service);
             var versionFolder  = await CreateFolder($"{outputFileName}-{buildIosInformation.iosInformation.buildNumber}", platFormFolder, service);
             //find Ipa file in ipaPath
@@ -130,9 +117,7 @@ public class UploadBuild
                 list.Add(ipaLink);
             }
 
-            var googleLinkPath = path.Replace("Assets", "");
-            googleLinkPath = $"{googleLinkPath}googleInfo.txt";
-            await System.IO.File.WriteAllTextAsync(googleLinkPath, string.Join(",", list));
+            await System.IO.File.WriteAllTextAsync($"{CommonServices.GetPathInformation("googleInfo.txt")}", string.Join(",", list));
             CommonServices.LogMessage($"Upload Finish");
         }
         catch (Exception e)
@@ -153,9 +138,7 @@ public class UploadBuild
     static async void UploadGoogleDriveAndroidPlatform()
     {
         var isBatchMode             = CommonServices.IsBatchMode();
-        var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathBuildInformation("AndroidInformation.json"));
-
-        var path = Application.dataPath;
+        var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
 
         var finalBuildVersion = CommonServices.GetFinalAndroidBuildVersion();
         var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
@@ -177,9 +160,8 @@ public class UploadBuild
 
         var service = await CommonServices.GetDriveServices(buildAndroidInformation.androidInformation.IsUseServicesAccount());
 
-        var uploadInfo = path.Replace("Assets", "");
         //read from file
-        var folderId = System.IO.File.ReadAllText($"{uploadInfo}/uploadInfo.txt");
+        var folderId = System.IO.File.ReadAllText($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
         //BuildEnvironment
         var environmentFolder = await CreateFolder(buildAndroidInformation.androidInformation.buildEnvironment, folderId, service);
 
@@ -217,9 +199,7 @@ public class UploadBuild
 
         if (!string.IsNullOrEmpty(zipFile)) list.Add(zipFile);
 
-        var googleLinkPath = path.Replace("Assets", "");
-        googleLinkPath = $"{googleLinkPath}googleInfo.txt";
-        System.IO.File.WriteAllText(googleLinkPath, string.Join(",", list));
+        System.IO.File.WriteAllText($"{CommonServices.GetPathInformation("googleInfo.txt")}", string.Join(",", list));
 
         if (isBatchMode)
         {

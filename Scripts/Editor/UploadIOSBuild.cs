@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using UnityEngine;
 
 public static class UploadIOSBuild
 {
@@ -12,7 +11,7 @@ public static class UploadIOSBuild
         return;
 
         var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(
-            CommonServices.GetPathBuildInformation("IosInformation.json"));
+            CommonServices.GetPathInformation("IosInformation.json"));
 
         var buildPath = $"{CommonServices.GetRootPath()}";
 
@@ -99,16 +98,14 @@ public static class UploadIOSBuild
     static void MoveArchive()
     {
         var data = CommonServices.GetDataModel<BuildIosInformation>(
-            CommonServices.GetPathBuildInformation("IosInformation.json"));
+            CommonServices.GetPathInformation("IosInformation.json"));
 
         var userHome          = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var archivePath       = Path.Combine(userHome, "Library", "Developer", "Xcode", "Archives");
         var currentDateTime   = DateTime.Now.ToString("yyyy-MM-dd");
         var destinationFolder = Path.Combine(archivePath, currentDateTime);
 
-        var path         = Application.dataPath.Replace("Assets", string.Empty).TrimEnd('/');
-        var parentPath   = Path.GetDirectoryName(path);
-        var sourceFolder = Path.Combine(parentPath, "Build/Client/ios", data.iosInformation.outputFileName, $"{data.iosInformation.outputFileName}.xcarchive");
+        var sourceFolder = $"{CommonServices.GetBuildPath()}Client/ios/{data.iosInformation.outputFileName}/{data.iosInformation.outputFileName}.xcarchive";
 
         if (!Directory.Exists(sourceFolder))
         {

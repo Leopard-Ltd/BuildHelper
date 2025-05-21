@@ -16,12 +16,9 @@ public class CommonServices
 
     public static async Task<DriveService> GetDriveServicesWithCredential()
     {
-        var      tokenPath   = $"{Application.persistentDataPath}/token";
-        string[] scopes      = { DriveService.Scope.Drive };
-        var      credentials = Application.dataPath;
-        credentials = credentials.Replace("Assets", "");
-        credentials = $"{credentials}/servicesAccount.json";
-        var stream = new FileStream(credentials, FileMode.Open, FileAccess.Read);
+        var      tokenPath = $"{Application.persistentDataPath}/token";
+        string[] scopes    = { DriveService.Scope.Drive };
+        var      stream    = new FileStream(GetPathInformation("servicesAccount.json"), FileMode.Open, FileAccess.Read);
 
         // Request authorization
         var cr = await GoogleWebAuthorizationBroker.AuthorizeAsync(
@@ -42,12 +39,9 @@ public class CommonServices
 
     public static Task<DriveService> GetService(string servicesAccountFileName = "servicesAccount.json")
     {
-        var servicesAccountPath = Application.dataPath;
-        servicesAccountPath = servicesAccountPath.Replace("Assets", "");
-        servicesAccountPath = $"{servicesAccountPath}/{servicesAccountFileName}";
         GoogleCredential credential;
 
-        using (var stream = new FileStream(servicesAccountPath, FileMode.Open, FileAccess.Read))
+        using (var stream = new FileStream(GetPathInformation(servicesAccountFileName), FileMode.Open, FileAccess.Read))
         {
             credential = GoogleCredential.FromStream(stream)
                 .CreateScoped(DriveService.Scope.Drive);
@@ -60,10 +54,10 @@ public class CommonServices
         }));
     }
 
-    public static string GetPathBuildInformation(string fileName)
+    public static string GetPathInformation(string fileName)
     {
-        var filePath = Application.dataPath;
-        filePath = filePath.Replace("/Assets", "");
+        var buildPath = GetBuildPath();
+        var filePath  = buildPath.Replace("Build", "Configs");
         filePath = $"{filePath}/{fileName}";
 
         return filePath;
@@ -96,7 +90,7 @@ public class CommonServices
         Console.WriteLine(message);
     }
 
-    public static string GetBuildPath(string outputFileName, string platform = "Android") { return Path.GetFullPath($"../Build/Client/{platform}/{outputFileName}"); }
+    public static string GetBuildPath(string outputFileName, string platform = "Android") { return $"{GetBuildPath()}/Client/{platform}/{outputFileName}"; }
 
     public static string FindFileInFolder(string pathFolder, string searchPattern = "*.ipa")
     {
@@ -133,14 +127,15 @@ public class CommonServices
 
     public static string GetFinalAndroidBuildVersion()
     {
-        var buildversionPath = Application.dataPath;
-        buildversionPath = buildversionPath.Replace("Assets", "buildversion.txt");
-
-        var version = System.IO.File.ReadAllText(buildversionPath);
+        var version = System.IO.File.ReadAllText(GetPathInformation("buildversion.txt"));
 
         return version;
     }
 
+    /// <summary>
+    /// Directory containt many project
+    /// </summary>
+    /// <returns></returns>
     public static string GetRootPath()
     {
         var path      = Application.dataPath;
@@ -156,6 +151,10 @@ public class CommonServices
         return buildPath;
     }
 
+    /// <summary>
+    /// Directory contain Build
+    /// </summary>
+    /// <returns></returns>
     public static string GetBuildPath()
     {
         var path  = Application.dataPath;
@@ -186,5 +185,9 @@ public class CommonServices
         return matchingFolders.Any();
     }
 
+    /// <summary>
+    /// Contain Assets Folder
+    /// </summary>
+    /// <returns></returns>
     public static string GetProjectPath() { return Path.GetFullPath(Application.dataPath + "/.."); }
 }

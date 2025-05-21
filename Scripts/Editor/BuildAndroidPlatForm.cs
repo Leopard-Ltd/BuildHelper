@@ -40,9 +40,10 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         {
             PlayerSettings.bundleVersion = data.androidInformation.customVersion.version;
         }
-        var outputVersion= PlayerSettings.bundleVersion;
 
-        var tmp= outputFileName.Split("-");
+        var outputVersion = PlayerSettings.bundleVersion;
+
+        var tmp = outputFileName.Split("-");
         tmp[1]         = outputVersion;
         outputFileName = string.Join("-", tmp);
 
@@ -51,9 +52,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.androidInformation.buildNumber}";
         }
 
-        var dPath = Application.dataPath;
-        dPath = dPath.Replace("Assets", "buildversion.txt");
-        File.WriteAllText(dPath, outputVersion);
+        File.WriteAllText(CommonServices.GetPathInformation("buildversion.txt"), outputVersion);
 
         var buildPlayerOptions = new BuildPlayerOptions
         {
@@ -68,7 +67,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
 
 #if UNITY_6000_0_OR_NEWER
-          UnityEditor.Android.UserBuildSettings.DebugSymbols.level = data.androidInformation.BuildAppBundle() ? Unity.Android.Types.DebugSymbolLevel.Full : Unity.Android.Types.DebugSymbolLevel.None;
+        UnityEditor.Android.UserBuildSettings.DebugSymbols.level = data.androidInformation.BuildAppBundle() ? Unity.Android.Types.DebugSymbolLevel.Full : Unity.Android.Types.DebugSymbolLevel.None;
 #else
         EditorUserBuildSettings.androidCreateSymbols = data.androidInformation.BuildAppBundle() ? AndroidCreateSymbols.Debugging : AndroidCreateSymbols.Disabled;
 #endif
@@ -96,7 +95,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.minifyRelease = data.androidInformation.IsMinify();
 
 #if UNITY_6000_0_OR_NEWER
-        PlayerSettings.Android.splitApplicationBinary = data.androidInformation.IsSplitBinary()&&data.androidInformation.BuildAppBundle();
+        PlayerSettings.Android.splitApplicationBinary = data.androidInformation.IsSplitBinary() && data.androidInformation.BuildAppBundle();
 #else
         PlayerSettings.Android.useAPKExpansionFiles = data.androidInformation.IsSplitBinary();
 #endif
@@ -104,18 +103,12 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
     private void SetPassword(BuildAndroidInformation data)
     {
-        var filePath = $"{data.androidInformation.keyName}";
-        var dPath    = Application.dataPath;
-        dPath = dPath.Replace("Assets", "keys/");
-        dPath = $"{dPath}{filePath}";
-
-        var finalPath = dPath;
+        var filePath  = $"{data.androidInformation.keyName}";
+        var finalPath = $"{CommonServices.GetProjectPath()}/keys/{filePath}";
         PlayerSettings.Android.useCustomKeystore = true;
         PlayerSettings.Android.keystoreName      = finalPath;
         PlayerSettings.Android.keystorePass      = data.androidInformation.keyPass;
         PlayerSettings.Android.keyaliasName      = data.androidInformation.aliasName;
         PlayerSettings.Android.keyaliasPass      = data.androidInformation.aliasPass;
     }
-
-   
 }

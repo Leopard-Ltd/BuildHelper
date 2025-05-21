@@ -40,7 +40,7 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         }
 
         var dPath = Application.dataPath;
-        dPath = dPath.Replace("Assets", "buildversion.txt");
+        dPath = CommonServices.GetPathInformation("buildversion.txt");
         File.WriteAllText(dPath, PlayerSettings.bundleVersion);
 
         var buildPlayerOptions = new BuildPlayerOptions
@@ -48,7 +48,7 @@ public class BuildIosPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.iOS,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath()}Client/ios/{outputFileName}",
+            locationPathName = $"{CommonServices.GetBuildPath(outputFileName,"ios")}",
             targetGroup      = BuildTargetGroup.iOS
         };
 
