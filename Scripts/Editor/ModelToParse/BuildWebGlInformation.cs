@@ -14,10 +14,7 @@ public class BuildWebGlInformation : IBuildInformation
 [Serializable]
 public class WebGlInformation : BaseBuildData
 {
-    public string useServicesAccount = "true";
-
-    public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
-    public bool OptimizeSizeBuild()    { return this.optimizeSizeBuild.Equals("true"); }
+    public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
     public bool IsDevelopment() { return this.isBuildDevelopment.Equals("true"); }
 }

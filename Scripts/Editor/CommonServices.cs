@@ -37,6 +37,24 @@ public class CommonServices
         return service;
     }
 
+    public static void CheckToClearToken(BaseBuildData data)
+    {
+        if (data.IsUseServicesAccount())
+        {
+            return;
+        }
+
+        if (!data.clearCachedCredentials)
+            return;
+
+        var tokenPath = $"{Application.persistentDataPath}/token";
+
+        if (Directory.Exists(tokenPath))
+        {
+            Directory.Delete(tokenPath, true);
+        }
+    }
+
     public static Task<DriveService> GetService(string servicesAccountFileName = "servicesAccount.json")
     {
         GoogleCredential credential;

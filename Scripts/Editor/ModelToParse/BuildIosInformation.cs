@@ -17,7 +17,6 @@ public class IosInformation : BaseBuildData
     public CustomVersion customVersion          = new CustomVersion();
     public string        signingTeamId          = "";
     public string        bundleIdentifier       = "com.abc.test";
-    public string        useServicesAccount     = "true";
     public string        productName            = "";
     public string        shouldUploadToAppStore = "false";
     public string        accountAppleId         = "";
@@ -27,7 +26,6 @@ public class IosInformation : BaseBuildData
 
     public bool IsUploadAppstoreConnect() { return this.shouldUploadToAppStore.Equals("true"); }
 
-    public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
     public bool OptimizeSizeBuild()    { return this.optimizeSizeBuild.Equals("true"); }
 
     public bool IsDevelopment() { return this.isBuildDevelopment.Equals("true"); }

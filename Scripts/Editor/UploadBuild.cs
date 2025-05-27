@@ -18,7 +18,7 @@ public class UploadBuild
     static string     IpaFile  = "application/x-itunes-ipa";
 
     [MenuItem("Build/UploadFile")]
-    static void TestUpload() { UploadGoogleDriveAndroidPlatform(); }
+    static void TestUpload() { UploadGoogleDriveWebGlPlatForm(); }
 
     static void RunNow()
     {
@@ -60,12 +60,13 @@ public class UploadBuild
         try
         {
             var isBatchMode = CommonServices.IsBatchMode();
-            var path        = Application.dataPath;
             var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
+            CommonServices.CheckToClearToken(webglModel.webGlInformation);
             var zipFilePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
             var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
             //read from file
-            var folderId          = System.IO.File.ReadAllText($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
+            var folderId = System.IO.File.ReadAllText($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
+
             var environmentFolder = await CreateFolder(webglModel.webGlInformation.buildEnvironment, folderId, service);
             var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
 
@@ -98,6 +99,7 @@ public class UploadBuild
         {
             var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
             var service             = await CommonServices.GetDriveServices(buildIosInformation.iosInformation.IsUseServicesAccount());
+            CommonServices.CheckToClearToken(buildIosInformation.iosInformation);
             var outputFileName      = buildIosInformation.iosInformation.outputFileName;
             //read from file
             var ipaPath        = $"{CommonServices.GetBuildPath()}/Client/ios/{buildIosInformation.iosInformation.outputFileName}/{buildIosInformation.iosInformation.outputFileName}.ipa/";
@@ -139,7 +141,7 @@ public class UploadBuild
     {
         var isBatchMode             = CommonServices.IsBatchMode();
         var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
-
+        CommonServices.CheckToClearToken(buildAndroidInformation.androidInformation);
         var finalBuildVersion = CommonServices.GetFinalAndroidBuildVersion();
         var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
         var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";

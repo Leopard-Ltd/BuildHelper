@@ -21,12 +21,11 @@ public class AndroidInformation : BaseBuildData
     public string        buildAppBundle     = "false";
     public CustomVersion customVersion      = new CustomVersion();
     public string        bundleIdentifier   = "";
-    public string        useServicesAccount = "true";
     public string        productName        = "";
     public string        minify             = "true";
     public string        splitBinary        = "true";
 
-    public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
+  
     public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }
 
     public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
