@@ -16,29 +16,29 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         base.SetUpAndBuild(data);
 
-        if (!string.IsNullOrEmpty(data.androidInformation.productName))
+        if (!string.IsNullOrEmpty(data.data.productName))
         {
-            PlayerSettings.productName = data.androidInformation.productName;
+            PlayerSettings.productName = data.data.productName;
         }
 
         //auto profile
-        EditorUserBuildSettings.connectProfiler = data.androidInformation.IsDevelopment();
+        EditorUserBuildSettings.connectProfiler = data.data.IsDevelopment();
 
-        if (!string.IsNullOrEmpty(data.androidInformation.bundleIdentifier))
+        if (!string.IsNullOrEmpty(data.data.bundleIdentifier))
         {
-            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, data.androidInformation.bundleIdentifier);
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, data.data.bundleIdentifier);
         }
 
         var errors = false;
-        EditorUserBuildSettings.buildAppBundle = data.androidInformation.BuildAppBundle();
-        this.SetScriptDefineSymbols(NamedBuildTarget.Android, data.androidInformation.scriptDefinition.Split(";"));
-        var il2CppCodeGeneration = data.androidInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
+        EditorUserBuildSettings.buildAppBundle = data.data.BuildAppBundle();
+        this.SetScriptDefineSymbols(NamedBuildTarget.Android, data.data.scriptDefinition.Split(";"));
+        var il2CppCodeGeneration = data.data.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Android, il2CppCodeGeneration);
-        var outputFileName = data.androidInformation.outputFileName;
+        var outputFileName = data.data.outputFileName;
 
-        if (data.androidInformation.customVersion.IsCustomVersion())
+        if (data.data.customVersion.IsCustomVersion())
         {
-            PlayerSettings.bundleVersion = data.androidInformation.customVersion.version;
+            PlayerSettings.bundleVersion = data.data.customVersion.version;
         }
 
         var outputVersion = PlayerSettings.bundleVersion;
@@ -47,9 +47,9 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         tmp[1]         = outputVersion;
         outputFileName = string.Join("-", tmp);
 
-        if (data.androidInformation.customVersion.IsAutoVersion())
+        if (data.data.customVersion.IsAutoVersion())
         {
-            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.androidInformation.buildNumber}";
+            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
         }
 
         File.WriteAllText(CommonServices.GetPathInformation("buildversion.txt"), outputVersion);
@@ -59,7 +59,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.Android,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath(outputFileName)}{(data.androidInformation.BuildAppBundle() ? ".aab" : ".apk")}",
+            locationPathName = $"{CommonServices.GetBuildPath(outputFileName)}{(data.data.BuildAppBundle() ? ".aab" : ".apk")}",
             targetGroup      = BuildTargetGroup.Android
         };
 
@@ -67,11 +67,11 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
 
 #if UNITY_6000_0_OR_NEWER
-        UnityEditor.Android.UserBuildSettings.DebugSymbols.level = data.androidInformation.BuildAppBundle() ? Unity.Android.Types.DebugSymbolLevel.Full : Unity.Android.Types.DebugSymbolLevel.None;
+        UnityEditor.Android.UserBuildSettings.DebugSymbols.level = data.data.BuildAppBundle() ? Unity.Android.Types.DebugSymbolLevel.Full : Unity.Android.Types.DebugSymbolLevel.None;
 #else
         EditorUserBuildSettings.androidCreateSymbols = data.androidInformation.BuildAppBundle() ? AndroidCreateSymbols.Debugging : AndroidCreateSymbols.Disabled;
 #endif
-        PlayerSettings.Android.bundleVersionCode = int.Parse(data.androidInformation.buildNumber);
+        PlayerSettings.Android.bundleVersionCode = int.Parse(data.data.buildNumber);
         this.SetDefaultSetting(data);
 
         //Build
@@ -91,11 +91,11 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
         PlayerSettings.stripEngineCode             = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), ManagedStrippingLevel.High);
-        PlayerSettings.Android.minifyDebug   = data.androidInformation.IsMinify();
-        PlayerSettings.Android.minifyRelease = data.androidInformation.IsMinify();
+        PlayerSettings.Android.minifyDebug   = data.data.IsMinify();
+        PlayerSettings.Android.minifyRelease = data.data.IsMinify();
 
 #if UNITY_6000_0_OR_NEWER
-        PlayerSettings.Android.splitApplicationBinary = data.androidInformation.IsSplitBinary() && data.androidInformation.BuildAppBundle();
+        PlayerSettings.Android.splitApplicationBinary = data.data.IsSplitBinary() && data.data.BuildAppBundle();
 #else
         PlayerSettings.Android.useAPKExpansionFiles = data.androidInformation.IsSplitBinary();
 #endif
@@ -103,12 +103,12 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
     private void SetPassword(BuildAndroidInformation data)
     {
-        var filePath  = $"{data.androidInformation.keyName}";
+        var filePath  = $"{data.data.keyName}";
         var finalPath = $"{CommonServices.GetProjectPath()}/keys/{filePath}";
         PlayerSettings.Android.useCustomKeystore = true;
         PlayerSettings.Android.keystoreName      = finalPath;
-        PlayerSettings.Android.keystorePass      = data.androidInformation.keyPass;
-        PlayerSettings.Android.keyaliasName      = data.androidInformation.aliasName;
-        PlayerSettings.Android.keyaliasPass      = data.androidInformation.aliasPass;
+        PlayerSettings.Android.keystorePass      = data.data.keyPass;
+        PlayerSettings.Android.keyaliasName      = data.data.aliasName;
+        PlayerSettings.Android.keyaliasPass      = data.data.aliasPass;
     }
 }

@@ -16,9 +16,9 @@ public static class UploadIOSBuild
         var buildPath = $"{CommonServices.GetRootPath()}";
 
         var projectPath = CommonServices.GetProjectPath();
-        var ipaFolder   = $"{buildPath}Build/Client/ios/{buildIosInformation.iosInformation.outputFileName}/{buildIosInformation.iosInformation.outputFileName}.ipa/";
+        var ipaFolder   = $"{buildPath}Build/Client/ios/{buildIosInformation.data.outputFileName}/{buildIosInformation.data.outputFileName}.ipa/";
         var ipaFilePath = CommonServices.FindFileInFolder(ipaFolder);
-        UploadToAppStore(buildIosInformation.iosInformation.fastLanePath, projectPath, ipaFilePath, buildIosInformation);
+        UploadToAppStore(buildIosInformation.data.fastLanePath, projectPath, ipaFilePath, buildIosInformation);
     }
 
     static void UploadToAppStore(string fastLanePath, string projectPath, string ipaPath, BuildIosInformation data)
@@ -32,7 +32,7 @@ public static class UploadIOSBuild
 
         // Ghi Appfile
         File.WriteAllText(Path.Combine(fastlaneDir, "Appfile"), $@"
-        app_identifier('{data.iosInformation.bundleIdentifier}')
+        app_identifier('{data.data.bundleIdentifier}')
         ");
 
         // Ghi Fastfile
@@ -51,7 +51,7 @@ public static class UploadIOSBuild
         end
         ");
 
-        RunCommand(fastLanePath, "upload", projectPath, data.iosInformation.fastLaneSession, data.iosInformation.accountAppleId);
+        RunCommand(fastLanePath, "upload", projectPath, data.data.fastLaneSession, data.data.accountAppleId);
     }
 
     private static void RunCommand(string command, string args, string workingDir, string fastLaneSession, string appleId)
@@ -105,7 +105,7 @@ public static class UploadIOSBuild
         var currentDateTime   = DateTime.Now.ToString("yyyy-MM-dd");
         var destinationFolder = Path.Combine(archivePath, currentDateTime);
 
-        var sourceFolder = $"{CommonServices.GetBuildPath()}Client/ios/{data.iosInformation.outputFileName}/{data.iosInformation.outputFileName}.xcarchive";
+        var sourceFolder = $"{CommonServices.GetBuildPath()}Client/ios/{data.data.outputFileName}/{data.data.outputFileName}.xcarchive";
 
         if (!Directory.Exists(sourceFolder))
         {
@@ -129,7 +129,7 @@ public static class UploadIOSBuild
         }
 
         var timestamp       = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var newArchiveName  = $"{data.iosInformation.outputFileName}_{timestamp}.xcarchive";
+        var newArchiveName  = $"{data.data.outputFileName}_{timestamp}.xcarchive";
         var destinationPath = Path.Combine(destinationFolder, newArchiveName);
 
         try

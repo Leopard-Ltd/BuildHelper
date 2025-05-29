@@ -87,7 +87,7 @@ public class IOSPostProcessingBuildTool
 
     private static void SetAutomatic(BuildIosInformation data, PBXProject pbxProject, string mainTargetGuid)
     {
-        var teamID = data.iosInformation.signingTeamId; // Team ID
+        var teamID = data.data.signingTeamId; // Team ID
         pbxProject.SetTeamId(mainTargetGuid, teamID);
         
         // Enable automatic signing
@@ -96,7 +96,7 @@ public class IOSPostProcessingBuildTool
     
     private static void SetTeamManualy(BuildIosInformation data, PBXProject pbxProject, string mainTargetGuid)
     {
-        var teamID      = data.iosInformation.signingTeamId; // Team ID
+        var teamID      = data.data.signingTeamId; // Team ID
         var profileName = "Nothing"; // Tên của provisioning profile
         var profileUUID = "30154144-e6b3-4521-8c60-d3a5d5a0c36e"; // UUID của provisioning profile (từ Apple Developer Portal)
 
@@ -151,7 +151,7 @@ public class IOSPostProcessingBuildTool
         rootDict.SetBoolean("ITSAppUsesNonExemptEncryption", false);
 
         // set build version
-        rootDict.SetString("CFBundleVersion", data.iosInformation.buildNumber);
+        rootDict.SetString("CFBundleVersion", data.data.buildNumber);
         // allow insecure http IOS
 #if ALLOW_INSECURE_HTTP_LOAD
             try

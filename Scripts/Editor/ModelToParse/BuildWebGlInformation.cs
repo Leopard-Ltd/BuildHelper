@@ -3,12 +3,13 @@
 [Serializable]
 public class BuildWebGlInformation : IBuildInformation
 {
-    public WebGlInformation webGlInformation = new WebGlInformation();
+    public WebGlInformation data = new WebGlInformation();
 
-    public bool   IsDevelopment() { return this.webGlInformation.IsDevelopment(); }
-    public string BlueprintPath   => this.webGlInformation.blueprintPath;
-    public string DefineSymbol    => this.webGlInformation.scriptDefinition;
+    public bool   IsDevelopment() { return this.data.IsDevelopment(); }
+    public string BlueprintPath   => this.data.blueprintPath;
+    public string DefineSymbol    => this.data.scriptDefinition;
     public string VersionCode     => "1";
+    public string TelegramWorker  => this.data.telegramWorker;
 }
 
 [Serializable]

@@ -3,12 +3,13 @@
 [Serializable]
 public class BuildIosInformation : IBuildInformation
 {
-    public IosInformation iosInformation = new IosInformation();
+    public IosInformation data = new IosInformation();
 
-    public bool   IsDevelopment() { return this.iosInformation.IsDevelopment(); }
-    public string BlueprintPath   => this.iosInformation.blueprintPath;
-    public string DefineSymbol    => this.iosInformation.scriptDefinition;
-    public string VersionCode     => this.iosInformation.buildNumber;
+    public bool   IsDevelopment() { return this.data.IsDevelopment(); }
+    public string BlueprintPath   => this.data.blueprintPath;
+    public string DefineSymbol    => this.data.scriptDefinition;
+    public string VersionCode     => this.data.buildNumber;
+    public string TelegramWorker  => this.data.telegramWorker;
 }
 
 [Serializable]

@@ -39,8 +39,8 @@ public class BuildCmd
         var buildAndroidPlatForm = new BuildAndroidPlatForm();
         var data                 = new BuildAndroidInformation();
         var scriptDefineSymbol   = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.Android);
-        data.androidInformation.scriptDefinition = scriptDefineSymbol;
-        data.androidInformation.outputFileName   = "output-1.0.0-1";
+        data.data.scriptDefinition = scriptDefineSymbol;
+        data.data.outputFileName   = "output-1.0.0-1";
 
         buildAndroidPlatForm.SetUpAndBuild(data);
     }

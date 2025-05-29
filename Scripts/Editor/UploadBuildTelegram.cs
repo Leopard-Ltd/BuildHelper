@@ -18,16 +18,16 @@ public class UploadBuildTelegram
         {
             var webglModel = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
 
-            foreach (var item in webglModel.webGlInformation.telegramInfos)
+            foreach (var item in webglModel.data.telegramInfos)
             {
                 if (!item.ShouldUploadToTelegram) continue;
                 var botToken = item.TelegramBotToken;
 
                 var chatId   = item.TelegramChatId;
                 var topicId  = item.TelegramThreadId;
-                var filePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
+                var filePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.data.outputFileName}.zip";
 
-                await UploadInternal(filePath, chatId, topicId, botToken);
+                await UploadInternal(webglModel, filePath, chatId, topicId, botToken);
             }
         }
         catch (Exception e)
@@ -41,7 +41,7 @@ public class UploadBuildTelegram
         }
     }
 
-    private static async Task UploadInternal(string filePath, string chatId, string topicId, string botToken)
+    private static async Task UploadInternal(IBuildInformation buildInfo, string filePath, string chatId, string topicId, string botToken)
     {
         CommonServices.LogMessage($"Start upload {filePath} to Telegram");
 
@@ -83,9 +83,23 @@ public class UploadBuildTelegram
 
         form.Add(streamContent, "document", Path.GetFileName(filePath));
 
+        var urlPos = $"https://api.telegram.org/bot{botToken}/sendDocument";
+
+        if (!string.IsNullOrEmpty(buildInfo.TelegramWorker))
+        {
+            var telegramWorker = buildInfo.TelegramWorker;
+
+            if (buildInfo.TelegramWorker.EndsWith("/"))
+            {
+                telegramWorker = buildInfo.TelegramWorker.TrimEnd('/');
+            }
+
+            urlPos = $"https://{telegramWorker}/bot{botToken}/sendDocument";
+        }
+
         try
         {
-            var response = await client.PostAsync($"https://api.telegram.org/bot{botToken}/sendDocument", form);
+            var response = await client.PostAsync(urlPos, form);
             var result   = await response.Content.ReadAsStringAsync();
             CommonServices.LogMessage("Status code: " + response.StatusCode);
             CommonServices.LogMessage("Response: " + result);
@@ -112,7 +126,7 @@ public class UploadBuildTelegram
             var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
             var listTask                = new List<Task>();
 
-            foreach (var item in buildAndroidInformation.androidInformation.telegramInfos)
+            foreach (var item in buildAndroidInformation.data.telegramInfos)
             {
                 if (!item.ShouldUploadToTelegram) continue;
                 var botToken = item.TelegramBotToken;
@@ -121,26 +135,26 @@ public class UploadBuildTelegram
                 var topicId = item.TelegramThreadId;
 
                 var finalBuildVersion = CommonServices.GetFinalAndroidBuildVersion();
-                var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
+                var tmp               = buildAndroidInformation.data.outputFileName.Split("-");
                 var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
                 var internalFilePath  = $"{CommonServices.GetBuildPath()}Client/Android/{outputFileName}";
                 var apkFilePath       = $"{internalFilePath}.apk";
                 var aabFilePath       = $"{internalFilePath}.aab";
-                var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
+                var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.data.buildNumber}-IL2CPP.symbols.zip";
 
                 if (File.Exists(apkFilePath))
                 {
-                    listTask.Add(UploadInternal(apkFilePath, chatId, topicId, botToken));
+                    listTask.Add(UploadInternal(buildAndroidInformation, apkFilePath, chatId, topicId, botToken));
                 }
 
                 if (File.Exists(aabFilePath))
                 {
-                    listTask.Add(UploadInternal(aabFilePath, chatId, topicId, botToken));
+                    listTask.Add(UploadInternal(buildAndroidInformation, aabFilePath, chatId, topicId, botToken));
                 }
 
                 if (File.Exists(zipFilePath))
                 {
-                    listTask.Add(UploadInternal(zipFilePath, chatId, topicId, botToken));
+                    listTask.Add(UploadInternal(buildAndroidInformation, zipFilePath, chatId, topicId, botToken));
                 }
             }
 

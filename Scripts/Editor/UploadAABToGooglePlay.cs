@@ -14,7 +14,7 @@ public static class UploadAABToGooglePlay
     {
         var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
 
-        if (!data.androidInformation.BuildAppBundle())
+        if (!data.data.BuildAppBundle())
             return;
 
         var packageName = PlayerSettings.applicationIdentifier;

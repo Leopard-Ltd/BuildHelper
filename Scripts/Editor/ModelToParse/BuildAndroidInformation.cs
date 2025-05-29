@@ -3,12 +3,13 @@ using System;
 [Serializable]
 public class BuildAndroidInformation : IBuildInformation
 {
-    public AndroidInformation androidInformation = new AndroidInformation();
+    public AndroidInformation data = new AndroidInformation();
 
-    public bool   IsDevelopment() { return this.androidInformation.IsDevelopment(); }
-    public string BlueprintPath   => this.androidInformation.blueprintPath;
-    public string DefineSymbol    => this.androidInformation.scriptDefinition;
-    public string VersionCode     => this.androidInformation.buildNumber;
+    public bool   IsDevelopment() { return this.data.IsDevelopment(); }
+    public string BlueprintPath   => this.data.blueprintPath;
+    public string DefineSymbol    => this.data.scriptDefinition;
+    public string VersionCode     => this.data.buildNumber;
+    public string TelegramWorker  => this.data.telegramWorker;
 }
 
 [Serializable]

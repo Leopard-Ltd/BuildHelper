@@ -18,8 +18,8 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         this.SetupOptional();
         //auto profile
         EditorUserBuildSettings.connectProfiler = data.IsDevelopment();
-        this.SetScriptDefineSymbols(NamedBuildTarget.WebGL, data.webGlInformation.scriptDefinition.Split(";"));
-        var il2CppCodeGeneration = data.webGlInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
+        this.SetScriptDefineSymbols(NamedBuildTarget.WebGL, data.data.scriptDefinition.Split(";"));
+        var il2CppCodeGeneration = data.data.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.WebGL, il2CppCodeGeneration);
 
         var buildPlayerOptions = new BuildPlayerOptions
@@ -27,7 +27,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.WebGL,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath(data.webGlInformation.outputFileName,"webgl")}",
+            locationPathName = $"{CommonServices.GetBuildPath(data.data.outputFileName,"webgl")}",
             targetGroup      = BuildTargetGroup.WebGL
         };
 

@@ -12,31 +12,31 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
         base.SetUpAndBuild(data);
 
-        if (!string.IsNullOrEmpty(data.iosInformation.productName))
+        if (!string.IsNullOrEmpty(data.data.productName))
         {
-            PlayerSettings.productName = data.iosInformation.productName;
+            PlayerSettings.productName = data.data.productName;
         }
 
-        EditorUserBuildSettings.connectProfiler = data.iosInformation.IsDevelopment();
+        EditorUserBuildSettings.connectProfiler = data.data.IsDevelopment();
 
-        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, data.iosInformation.bundleIdentifier);
-        PlayerSettings.iOS.appleDeveloperTeamID = data.iosInformation.signingTeamId;
-        PlayerSettings.iOS.buildNumber          = data.iosInformation.buildNumber;
-        this.SetScriptDefineSymbols(NamedBuildTarget.iOS, data.iosInformation.scriptDefinition.Split(";"));
-        var il2CppCodeGeneration = data.iosInformation.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
+        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, data.data.bundleIdentifier);
+        PlayerSettings.iOS.appleDeveloperTeamID = data.data.signingTeamId;
+        PlayerSettings.iOS.buildNumber          = data.data.buildNumber;
+        this.SetScriptDefineSymbols(NamedBuildTarget.iOS, data.data.scriptDefinition.Split(";"));
+        var il2CppCodeGeneration = data.data.OptimizeSizeBuild() ? Il2CppCodeGeneration.OptimizeSize : Il2CppCodeGeneration.OptimizeSpeed;
         PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.iOS, il2CppCodeGeneration);
-        var outputFileName = data.iosInformation.outputFileName;
+        var outputFileName = data.data.outputFileName;
         PlayerSettings.stripEngineCode = true;
         PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.iOS), ManagedStrippingLevel.High);
 
-        if (data.iosInformation.customVersion.IsCustomVersion())
+        if (data.data.customVersion.IsCustomVersion())
         {
-            PlayerSettings.bundleVersion = data.iosInformation.customVersion.version;
+            PlayerSettings.bundleVersion = data.data.customVersion.version;
         }
 
-        if (data.iosInformation.customVersion.IsAutoVersion())
+        if (data.data.customVersion.IsAutoVersion())
         {
-            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.iosInformation.buildNumber}";
+            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
         }
 
         var dPath = Application.dataPath;

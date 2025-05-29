@@ -61,13 +61,13 @@ public class UploadBuild
         {
             var isBatchMode = CommonServices.IsBatchMode();
             var webglModel  = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
-            CommonServices.CheckToClearToken(webglModel.webGlInformation);
-            var zipFilePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.webGlInformation.outputFileName}.zip";
-            var service     = await CommonServices.GetDriveServices(webglModel.webGlInformation.IsUseServicesAccount());
+            CommonServices.CheckToClearToken(webglModel.data);
+            var zipFilePath = $"{CommonServices.GetBuildPath()}Client/webgl/{webglModel.data.outputFileName}.zip";
+            var service     = await CommonServices.GetDriveServices(webglModel.data.IsUseServicesAccount());
             //read from file
             var folderId = System.IO.File.ReadAllText($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
 
-            var environmentFolder = await CreateFolder(webglModel.webGlInformation.buildEnvironment, folderId, service);
+            var environmentFolder = await CreateFolder(webglModel.data.buildEnvironment, folderId, service);
             var platFormFolder    = await CreateFolder("webgl", environmentFolder, service);
 
             var list = new List<string> { $"https://drive.google.com/drive/folders/{folderId}" };
@@ -98,15 +98,15 @@ public class UploadBuild
         try
         {
             var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
-            var service             = await CommonServices.GetDriveServices(buildIosInformation.iosInformation.IsUseServicesAccount());
-            CommonServices.CheckToClearToken(buildIosInformation.iosInformation);
-            var outputFileName      = buildIosInformation.iosInformation.outputFileName;
+            var service             = await CommonServices.GetDriveServices(buildIosInformation.data.IsUseServicesAccount());
+            CommonServices.CheckToClearToken(buildIosInformation.data);
+            var outputFileName      = buildIosInformation.data.outputFileName;
             //read from file
-            var ipaPath        = $"{CommonServices.GetBuildPath()}/Client/ios/{buildIosInformation.iosInformation.outputFileName}/{buildIosInformation.iosInformation.outputFileName}.ipa/";
+            var ipaPath        = $"{CommonServices.GetBuildPath()}/Client/ios/{buildIosInformation.data.outputFileName}/{buildIosInformation.data.outputFileName}.ipa/";
             var ipaFilePath    = CommonServices.FindFileInFolder(ipaPath);
             var folderId       = await System.IO.File.ReadAllTextAsync($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
             var platFormFolder = await CreateFolder("ios", folderId, service);
-            var versionFolder  = await CreateFolder($"{outputFileName}-{buildIosInformation.iosInformation.buildNumber}", platFormFolder, service);
+            var versionFolder  = await CreateFolder($"{outputFileName}-{buildIosInformation.data.buildNumber}", platFormFolder, service);
             //find Ipa file in ipaPath
             var ipaLink = "";
             CommonServices.LogMessage($"Start upload");
@@ -141,31 +141,31 @@ public class UploadBuild
     {
         var isBatchMode             = CommonServices.IsBatchMode();
         var buildAndroidInformation = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
-        CommonServices.CheckToClearToken(buildAndroidInformation.androidInformation);
+        CommonServices.CheckToClearToken(buildAndroidInformation.data);
         var finalBuildVersion = CommonServices.GetFinalAndroidBuildVersion();
-        var tmp               = buildAndroidInformation.androidInformation.outputFileName.Split("-");
+        var tmp               = buildAndroidInformation.data.outputFileName.Split("-");
         var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
         var internalFilePath  = $"{CommonServices.GetBuildPath()}Client/Android/{outputFileName}";
         var apkFilePath       = $"{internalFilePath}.apk";
         var aabFilePath       = $"{internalFilePath}.aab";
-        var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.androidInformation.buildNumber}-IL2CPP.symbols.zip";
+        var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.data.buildNumber}-IL2CPP.symbols.zip";
 
         if (!System.IO.File.Exists(apkFilePath))
         {
             throw new Exception("Apk File not found");
         }
 
-        if (!System.IO.File.Exists(aabFilePath) && buildAndroidInformation.androidInformation.BuildAppBundle())
+        if (!System.IO.File.Exists(aabFilePath) && buildAndroidInformation.data.BuildAppBundle())
         {
             throw new Exception("Aab File not found");
         }
 
-        var service = await CommonServices.GetDriveServices(buildAndroidInformation.androidInformation.IsUseServicesAccount());
+        var service = await CommonServices.GetDriveServices(buildAndroidInformation.data.IsUseServicesAccount());
 
         //read from file
         var folderId = System.IO.File.ReadAllText($"{CommonServices.GetPathInformation("uploadInfo.txt")}");
         //BuildEnvironment
-        var environmentFolder = await CreateFolder(buildAndroidInformation.androidInformation.buildEnvironment, folderId, service);
+        var environmentFolder = await CreateFolder(buildAndroidInformation.data.buildEnvironment, folderId, service);
 
         //create platform folder
         var platFormFolder = await CreateFolder("Android", environmentFolder, service);
@@ -179,7 +179,7 @@ public class UploadBuild
         var zipFile = "";
         listTask.Add(UploadFileInternal(apkFilePath, versionFolder, service, ApkFile, (x) => { urlApk = x; }));
 
-        if (buildAndroidInformation.androidInformation.BuildAppBundle())
+        if (buildAndroidInformation.data.BuildAppBundle())
         {
             listTask.Add(UploadFileInternal(aabFilePath, versionFolder, service, ApkFile, (x) => { urlAab  = x; }));
             listTask.Add(UploadFileInternal(zipFilePath, versionFolder, service, ZipFile, (x) => { zipFile = x; }));
