@@ -48,7 +48,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         PlayerSettings.WebGL.powerPreference       = WebGLPowerPreference.HighPerformance;
         PlayerSettings.WebGL.dataCaching           = true;
         PlayerSettings.WebGL.exceptionSupport      = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
-        UserBuildSettings.codeOptimization         = WasmCodeOptimization.BuildTimes;
+        UserBuildSettings.codeOptimization         = WasmCodeOptimization.DiskSize;
 #if UNITY_6000_0_OR_NEWER
         // PlayerSettings.WebGL.webAssemblyTable  = true;
         // PlayerSettings.WebGL.webAssemblyBigInt = true;
