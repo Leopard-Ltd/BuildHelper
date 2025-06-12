@@ -11,15 +11,14 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
-
+using UnityEditor.Build;
+using UnityEngine;
 #if ADDRESSABLE
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Build;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 #endif
-using UnityEditor.Build;
-using UnityEngine;
 
 public abstract class BaseBuildPlatForm
 {
@@ -46,20 +45,20 @@ public abstract class BaseBuildPlatForm
         var path                   = Application.dataPath;
         var featureGameVersionPath = $"{path}/FeatureTemplate/Scripts/Services/FeatureGameVersion.cs";
 
-        if (!System.IO.File.Exists(featureGameVersionPath)) return;
+        if (!File.Exists(featureGameVersionPath)) return;
 
-        var fileContent = System.IO.File.ReadAllText(featureGameVersionPath);
+        var fileContent = File.ReadAllText(featureGameVersionPath);
 
-        var newBuildInfo   = $"BuildInfo=\"Unity Version: {Application.unityVersion} | Build: {PlayerSettings.bundleVersion} - {data.VersionCode} - {System.DateTime.Now}\";";
-        var updatedContent = System.Text.RegularExpressions.Regex.Replace(fileContent, @"BuildInfo\s*=\s*\"".*\"";", newBuildInfo);
-        System.IO.File.WriteAllText(featureGameVersionPath, updatedContent);
+        var newBuildInfo   = $"BuildInfo=\"Unity Version: {Application.unityVersion} | Build: {PlayerSettings.bundleVersion} - {data.VersionCode} - {DateTime.Now}\";";
+        var updatedContent = Regex.Replace(fileContent, @"BuildInfo\s*=\s*\"".*\"";", newBuildInfo);
+        File.WriteAllText(featureGameVersionPath, updatedContent);
     }
 
     public void SetupBlueprintPath(IBuildInformation data)
     {
         var blueprintConfig = $"{Application.dataPath}/Resources/GameConfigs/BlueprintConfig.asset";
 
-        if (!System.IO.File.Exists(blueprintConfig))
+        if (!File.Exists(blueprintConfig))
         {
             CommonServices.LogMessage("Blueprint config not found");
 
@@ -73,12 +72,12 @@ public abstract class BaseBuildPlatForm
             return;
         }
 
-        var content     = System.IO.File.ReadAllText(blueprintConfig);
+        var content     = File.ReadAllText(blueprintConfig);
         var pattern     = @"(resourceBlueprintPath:\s*).*";
         var replacement = $"$1{data.BlueprintPath}/";
 
         var result = Regex.Replace(content, pattern, replacement);
-        System.IO.File.WriteAllText(blueprintConfig, result);
+        File.WriteAllText(blueprintConfig, result);
         CommonServices.LogMessage($"Reset blueprint path to {data.BlueprintPath}");
     }
 
@@ -153,8 +152,8 @@ public abstract class BaseBuildPlatForm
 
 #endif
     }
-    [MenuItem("Build/Upload All CCD")]
-    protected virtual void AfterBuild(IBuildInformation data) { UploadAllCcd(data); }
+
+    protected Task AfterBuild(IBuildInformation data) { return ProcessCCD(); }
 
     protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup, string[] scripts) { PlayerSettings.SetScriptingDefineSymbols(targetGroup, scripts); }
 
@@ -170,8 +169,43 @@ public abstract class BaseBuildPlatForm
 
     #region Upload to CCD
 
-   
-    private static async void UploadAllCcd(IBuildInformation data)
+    [MenuItem("Build/Upload CCD")]
+    public static async Task ProcessCCD()
+    {
+        var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
+
+        var ccdInfo      = JsonUtility.FromJson<UnityCCDInfo>(data.CCdInfo);
+        var totalEntries = await GetTotalEntries(ccdInfo);
+        await DeleteAllEntries(totalEntries, ccdInfo);
+
+        await UploadAllCcd(data);
+    }
+
+    private static async Task DeleteAllEntries(List<JObject> entries, UnityCCDInfo ccdInfo)
+    {
+        var client   = new HttpClient();
+        var entryUrl = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/entries";
+
+        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{ccdInfo.clientId}:{ccdInfo.clientSecret}"));
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        foreach (var entry in entries)
+        {
+            var entryId = entry["entryid"]?.ToString();
+
+            if (string.IsNullOrEmpty(entryId)) continue;
+            var delResp = await client.DeleteAsync($"{entryUrl}/{entryId}");
+
+            CommonServices.LogMessage(delResp.IsSuccessStatusCode
+                ? $"✅ Delete {entry["path"]}"
+                : $"❌ Eror delete {entry["path"]}");
+
+            await Task.Delay(100);
+        }
+    }
+
+    private static async Task UploadAllCcd(IBuildInformation data)
     {
         if (data.CCdInfo.StringIsNullOrEmpty())
         {
@@ -191,7 +225,7 @@ public abstract class BaseBuildPlatForm
             ccdInfo.projectId.StringIsNullOrEmpty() ||
             ccdInfo.environmentId.StringIsNullOrEmpty())
         {
-            throw new Exception("❌ Thông tin CCD không đầy đủ. Vui lòng kiểm tra lại.");
+            throw new Exception("❌ Wrong CCD Info, please check again.");
         }
 
         var ccdBuildPath  = $"{CommonServices.GetProjectPath()}/CCDBuildData";
@@ -202,7 +236,7 @@ public abstract class BaseBuildPlatForm
 
         foreach (var file in bundleFiles)
         {
-            CommonServices.LogMessage($"📤 Đang Process {file} lên CCD...");
+            CommonServices.LogMessage($"📤 Process {file} to CCD...");
             listTask.Add(UploadToCcd(file, ccdInfo.projectId, ccdInfo.environmentId, ccdInfo.bucketId, ccdInfo.clientId, ccdInfo.clientSecret, listOut));
         }
 
@@ -210,16 +244,16 @@ public abstract class BaseBuildPlatForm
 
         if (listOut.Count < bundleFiles.Length)
         {
-            throw new Exception("❌ Không thể upload tất cả bundle files lên CCD. Vui lòng kiểm tra log để biết thêm chi tiết.");
+            throw new Exception("❌ Can not upload all files to CCD, please check the log for details.");
         }
 
-        CreateNewRelease(ccdInfo);
+        await CreateNewRelease(ccdInfo);
     }
 
-    private static async void CreateNewRelease(UnityCCDInfo ccdInfo)
+    private static async Task CreateNewRelease(UnityCCDInfo ccdInfo)
     {
         var url = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/releases";
-        CommonServices.LogMessage($"📦 Tạo release mới tại: {url}");
+        CommonServices.LogMessage($"📦 Create new release: {url}");
 
         var payload = new
         {
@@ -250,8 +284,77 @@ public abstract class BaseBuildPlatForm
         }
     }
 
+    private static async Task<List<JObject>> GetTotalEntries(UnityCCDInfo ccdInfo)
+    {
+        var client       = new HttpClient();
+        var entryUrlBase = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/entries";
+
+        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{ccdInfo.clientId}:{ccdInfo.clientSecret}"));
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        CommonServices.LogMessage("📥 Get All entries...");
+
+        var       allEntries = new List<JObject>();
+        const int pageSize   = 100;
+        string?   startingAfter;
+        startingAfter = null;
+
+        while (true)
+        {
+            var url = $"{entryUrlBase}?per_page={pageSize}";
+
+            if (!string.IsNullOrEmpty(startingAfter))
+                url += $"&starting_after={startingAfter}";
+
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                CommonServices.LogMessage($"❌ Can not get entries list. HTTP {(int)response.StatusCode}: {response.ReasonPhrase}");
+
+                break;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Dữ liệu trả về là mảng JSON thuần
+            var entries = JArray.Parse(content);
+
+            if (entries.Count == 0)
+                break;
+
+            CommonServices.LogMessage($"📄 Get total entries at page{pageSize}: {entries.Count}");
+            allEntries.AddRange(entries.Cast<JObject>());
+
+            if (entries.Count < pageSize)
+                break;
+
+            // lấy id của entry cuối cùng để làm `starting_after`
+            startingAfter = entries.Last["id"]?.ToString();
+
+            if (string.IsNullOrEmpty(startingAfter))
+            {
+                CommonServices.LogMessage("⚠️ Can not find page navigation.");
+
+                break;
+            }
+        }
+
+        CommonServices.LogMessage($"✅Total entries: {allEntries.Count}");
+
+        return allEntries;
+    }
+
     private static async Task UploadToCcd(string filePath, string projectId, string environmentId, string bucketId, string keyId, string secretKey, List<string> output)
     {
+        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+        {
+            CommonServices.LogMessage($"❌ File not found: {filePath}");
+
+            return;
+        }
+
         var client = new HttpClient();
 
         var fileNameInCcd = Path.GetFileName(filePath);
@@ -260,39 +363,10 @@ public abstract class BaseBuildPlatForm
         var entryUrl = $"https://services.api.unity.com/ccd/management/v1/projects/{projectId}/environments/{environmentId}/buckets/{bucketId}/entries/";
         CommonServices.LogMessage(entryUrl);
         var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{keyId}:{secretKey}"));
+
+        CommonServices.LogMessage("⬆️ Upload file...");
         var contentHash = GetMD5Hash(filePath);
         var contentSize = new FileInfo(filePath).Length;
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-
-        CommonServices.LogMessage("📥 Đang lấy danh sách entries...");
-        var getResp = await client.GetAsync($"{entryUrl}");
-
-        if (!getResp.IsSuccessStatusCode)
-        {
-            CommonServices.LogMessage("❌ Không thể lấy danh sách entry.");
-
-            return;
-        }
-
-        var listJson = await getResp.Content.ReadAsStringAsync();
-        var entries  = JArray.Parse(listJson);
-
-        CommonServices.LogMessage($"🧹 Đang xoá {entries.Count} entries...");
-
-        foreach (var entry in entries)
-        {
-            var entryId = entry["entryid"]?.ToString();
-
-            if (string.IsNullOrEmpty(entryId)) continue;
-            var delResp = await client.DeleteAsync($"{entryUrl}/{entryId}");
-
-            CommonServices.LogMessage(delResp.IsSuccessStatusCode
-                ? $"✅ Xoá {entry["path"]}"
-                : $"❌ Lỗi xoá {entry["path"]}");
-        }
-
-        CommonServices.LogMessage("⬆️ Upload lại file...");
 
         var payload = new
         {

@@ -7,7 +7,7 @@ using UnityEditor.WebGL;
 
 public class BuildWebGlPlatForm : BaseBuildPlatForm
 {
-    public override void SetUpAndBuild(IBuildInformation baseData)
+    public override async void SetUpAndBuild(IBuildInformation baseData)
     {
         base.SetUpAndBuild(baseData);
         var data = (BuildWebGlInformation)baseData;
@@ -27,14 +27,14 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.WebGL,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath(data.data.outputFileName,"webgl")}",
+            locationPathName = $"{CommonServices.GetBuildPath(data.data.outputFileName, "webgl")}",
             targetGroup      = BuildTargetGroup.WebGL
         };
 
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
-         this.AfterBuild(data);
+        await this.AfterBuild(data);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
         CommonServices.LogMessage("Build Webgl Done");
     }

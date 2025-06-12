@@ -9,7 +9,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 {
     private static string bundleId = Application.identifier;
 
-    public override void SetUpAndBuild(IBuildInformation baseData)
+    public override async void SetUpAndBuild(IBuildInformation baseData)
     {
         var data = (BuildAndroidInformation)baseData;
         this.SetPassword(data);
@@ -83,7 +83,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
         Console.WriteLine(new string('=', 80));
         Console.WriteLine();
-        this.AfterBuild(data);
+        await this.AfterBuild(data);
         Debug.Log("Build Android Done");
     }
 
