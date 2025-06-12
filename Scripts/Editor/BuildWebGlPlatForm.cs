@@ -1,5 +1,7 @@
 ﻿#if UNITY_WEBGL
+
 using System.IO;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -7,9 +9,9 @@ using UnityEditor.WebGL;
 
 public class BuildWebGlPlatForm : BaseBuildPlatForm
 {
-    public override async void SetUpAndBuild(IBuildInformation baseData)
+    public override async Task SetUpAndBuild(IBuildInformation baseData)
     {
-        base.SetUpAndBuild(baseData);
+        await base.SetUpAndBuild(baseData);
         var data = (BuildWebGlInformation)baseData;
 
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
@@ -33,8 +35,8 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
-        BuildCmd.WriteReport(buildResult);
         await this.AfterBuild(data);
+        BuildCmd.WriteReport(buildResult);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
         CommonServices.LogMessage("Build Webgl Done");
     }
@@ -70,4 +72,5 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 #endif
     }
 }
+
 #endif

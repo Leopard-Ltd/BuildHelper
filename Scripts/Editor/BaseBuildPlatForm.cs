@@ -22,7 +22,7 @@ using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 
 public abstract class BaseBuildPlatForm
 {
-    public virtual void SetUpAndBuild(IBuildInformation data)
+    public virtual async Task SetUpAndBuild(IBuildInformation data)
     {
         this.ResetBuildSettings();
 
@@ -112,7 +112,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }
@@ -247,10 +247,10 @@ public abstract class BaseBuildPlatForm
             throw new Exception("❌ Can not upload all files to CCD, please check the log for details.");
         }
 
-        await CreateNewRelease(ccdInfo);
+        CreateNewRelease(ccdInfo);
     }
 
-    private static async Task CreateNewRelease(UnityCCDInfo ccdInfo)
+    private static async void CreateNewRelease(UnityCCDInfo ccdInfo)
     {
         var url = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/releases";
         CommonServices.LogMessage($"📦 Create new release: {url}");

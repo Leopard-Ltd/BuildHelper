@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -6,11 +7,11 @@ using UnityEngine;
 
 public class BuildIosPlatForm : BaseBuildPlatForm
 {
-    public override async void SetUpAndBuild(IBuildInformation baseData)
+    public override async Task SetUpAndBuild(IBuildInformation baseData)
     {
         var data = (BuildIosInformation)baseData;
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
-        base.SetUpAndBuild(data);
+        await base.SetUpAndBuild(data);
 
         if (!string.IsNullOrEmpty(data.data.productName))
         {
@@ -48,14 +49,14 @@ public class BuildIosPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.iOS,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath(outputFileName,"ios")}",
+            locationPathName = $"{CommonServices.GetBuildPath(outputFileName, "ios")}",
             targetGroup      = BuildTargetGroup.iOS
         };
 
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
-        BuildCmd.WriteReport(buildResult);
         await this.AfterBuild(data);
+        BuildCmd.WriteReport(buildResult);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
     }
 }

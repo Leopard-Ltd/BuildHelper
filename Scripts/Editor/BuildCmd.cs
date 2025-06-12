@@ -46,7 +46,7 @@ public class BuildCmd
     }
 
     [MenuItem("Build/Build Android")]
-    static void BuildAndroid()
+    static async void BuildAndroid()
     {
         var data        = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
@@ -61,7 +61,7 @@ public class BuildCmd
         try
         {
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
-            buildAndroidPlatForm.SetUpAndBuild(data);
+            await buildAndroidPlatForm.SetUpAndBuild(data);
 
             OnAfterExecute(isBatchMode, () =>
             {

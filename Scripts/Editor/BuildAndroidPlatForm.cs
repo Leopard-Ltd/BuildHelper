@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -9,12 +10,12 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 {
     private static string bundleId = Application.identifier;
 
-    public override async void SetUpAndBuild(IBuildInformation baseData)
+    public override async Task SetUpAndBuild(IBuildInformation baseData)
     {
         var data = (BuildAndroidInformation)baseData;
         this.SetPassword(data);
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
-        base.SetUpAndBuild(data);
+        await base.SetUpAndBuild(data);
 
         if (!string.IsNullOrEmpty(data.data.productName))
         {
