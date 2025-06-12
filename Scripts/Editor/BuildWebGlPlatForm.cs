@@ -34,6 +34,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildCmd.WriteReport(buildResult);
+         this.AfterBuild(data);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
         CommonServices.LogMessage("Build Webgl Done");
     }

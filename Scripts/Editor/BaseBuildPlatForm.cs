@@ -150,9 +150,11 @@ public abstract class BaseBuildPlatForm
         CommonServices.LogMessage($"--------------------");
         CommonServices.LogMessage($"Finish building addressable");
         CommonServices.LogMessage($"--------------------");
-        UploadAllCcd(data);
+
 #endif
     }
+    [MenuItem("Build/Upload All CCD")]
+    protected virtual void AfterBuild(IBuildInformation data) { UploadAllCcd(data); }
 
     protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup, string[] scripts) { PlayerSettings.SetScriptingDefineSymbols(targetGroup, scripts); }
 
@@ -168,7 +170,7 @@ public abstract class BaseBuildPlatForm
 
     #region Upload to CCD
 
-    [MenuItem("Build/Upload All CCD")]
+   
     private static async void UploadAllCcd(IBuildInformation data)
     {
         if (data.CCdInfo.StringIsNullOrEmpty())
@@ -206,7 +208,46 @@ public abstract class BaseBuildPlatForm
 
         await Task.WhenAll(listTask);
 
-        CommonServices.LogMessage(listOut.Count == bundleFiles.Length ? "✅ Tất cả file đã được upload lên CCD." : "❌ Không thể upload một số file lên CCD.");
+        if (listOut.Count < bundleFiles.Length)
+        {
+            throw new Exception("❌ Không thể upload tất cả bundle files lên CCD. Vui lòng kiểm tra log để biết thêm chi tiết.");
+        }
+
+        CreateNewRelease(ccdInfo);
+    }
+
+    private static async void CreateNewRelease(UnityCCDInfo ccdInfo)
+    {
+        var url = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/releases";
+        CommonServices.LogMessage($"📦 Tạo release mới tại: {url}");
+
+        var payload = new
+        {
+            notes = $"Auto Release at {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+            metadata = new
+            {
+                version = PlayerSettings.bundleVersion
+            }
+        };
+
+        var jsonPayload = JsonConvert.SerializeObject(payload);
+        var content     = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        using var client      = new HttpClient();
+        var       credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{ccdInfo.clientId}:{ccdInfo.clientSecret}"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        var response = await client.PostAsync(url, content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            CommonServices.LogMessage("✅ Release created successfully.");
+        }
+        else
+        {
+            CommonServices.LogMessage("❌ Failed to create release:");
+            CommonServices.LogMessage(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+        }
     }
 
     private static async Task UploadToCcd(string filePath, string projectId, string environmentId, string bucketId, string keyId, string secretKey, List<string> output)

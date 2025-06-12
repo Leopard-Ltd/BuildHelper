@@ -83,6 +83,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
         Console.WriteLine(new string('=', 80));
         Console.WriteLine();
+        this.AfterBuild(data);
         Debug.Log("Build Android Done");
     }
 
