@@ -15,4 +15,16 @@ public class BaseBuildData
 
     public List<TelegramInformation> telegramInfos  = new List<TelegramInformation>();
     public string                    telegramWorker = "";
+    public string                    ccdInfo        = "";
+}
+
+[System.Serializable]
+public class UnityCCDInfo
+{
+    public bool   allowUpdate   = false;
+    public string projectId     = "";
+    public string environmentId = "";
+    public string bucketId      = "";
+    public string clientId      = "";
+    public string clientSecret  = "";
 }

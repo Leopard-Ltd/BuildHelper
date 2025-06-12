@@ -10,6 +10,7 @@ public class BuildWebGlInformation : IBuildInformation
     public string DefineSymbol    => this.data.scriptDefinition;
     public string VersionCode     => "1";
     public string TelegramWorker  => this.data.telegramWorker;
+    public string CCdInfo         => this.data.ccdInfo;
 }
 
 [Serializable]

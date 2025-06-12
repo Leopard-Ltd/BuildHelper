@@ -10,6 +10,7 @@ public class BuildIosInformation : IBuildInformation
     public string DefineSymbol    => this.data.scriptDefinition;
     public string VersionCode     => this.data.buildNumber;
     public string TelegramWorker  => this.data.telegramWorker;
+    public string CCdInfo         => this.data.ccdInfo;
 }
 
 [Serializable]

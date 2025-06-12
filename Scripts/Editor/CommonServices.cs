@@ -10,7 +10,7 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using UnityEngine;
 
-public class CommonServices
+public static class CommonServices
 {
     public static async Task<DriveService> GetDriveServices(bool isServicesAccount = true) { return isServicesAccount ? await GetService() : await GetDriveServicesWithCredential(); }
 
@@ -102,12 +102,21 @@ public class CommonServices
         return isBatchMode;
     }
 
-    public static void LogMessage(string message)
+    public static void LogMessage(object message)
     {
         Debug.Log(message);
         Console.WriteLine(message);
     }
 
+    public static bool StringIsNullOrEmpty(this string str)
+    {
+        if (string.IsNullOrEmpty(str))
+        {
+            return true;
+        }
+
+        return false;
+    }
     public static string GetBuildPath(string outputFileName, string platform = "Android") { return $"{GetBuildPath()}/Client/{platform}/{outputFileName}"; }
 
     public static string FindFileInFolder(string pathFolder, string searchPattern = "*.ipa")

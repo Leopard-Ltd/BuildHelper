@@ -1,6 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 
 #if ADDRESSABLE
@@ -24,10 +33,10 @@ public abstract class BaseBuildPlatForm
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            CommonServices.LogMessage(e);
         }
 
-        this.BuildAddressable();
+        this.BuildAddressable(data);
 
         EditorUserBuildSettings.development = data.IsDevelopment();
     }
@@ -111,7 +120,7 @@ public abstract class BaseBuildPlatForm
 #endif
     }
 
-    private void BuildAddressable()
+    private void BuildAddressable(IBuildInformation data)
     {
 #if ADDRESSABLE
         var settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -120,27 +129,28 @@ public abstract class BaseBuildPlatForm
 #if !NO_LZMA
         SetAllGroupsToLZMA();
 #endif
-        Console.WriteLine($"--------------------");
-        Console.WriteLine($"Clean addressable");
-        Console.WriteLine($"--------------------");
+        CommonServices.LogMessage($"--------------------");
+        CommonServices.LogMessage($"Clean addressable");
+        CommonServices.LogMessage($"--------------------");
         AddressableAssetSettings.CleanPlayerContent();
-        Console.WriteLine($"--------------------");
-        Console.WriteLine($"Build addressable");
-        Console.WriteLine($"--------------------");
+        CommonServices.LogMessage($"--------------------");
+        CommonServices.LogMessage($"Build addressable");
+        CommonServices.LogMessage($"--------------------");
         AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
         var success = string.IsNullOrEmpty(result.Error);
 
         if (!success)
         {
             var errorMessage = "Addressable build error encountered: " + result.Error;
-            Debug.LogError(errorMessage);
+            CommonServices.LogMessage(errorMessage);
 
             throw new Exception(errorMessage);
         }
 
-        Console.WriteLine($"--------------------");
-        Console.WriteLine($"Finish building addressable");
-        Console.WriteLine($"--------------------");
+        CommonServices.LogMessage($"--------------------");
+        CommonServices.LogMessage($"Finish building addressable");
+        CommonServices.LogMessage($"--------------------");
+        UploadAllCcd(data);
 #endif
     }
 
@@ -155,4 +165,166 @@ public abstract class BaseBuildPlatForm
 
         return scenes;
     }
+
+    #region Upload to CCD
+
+    [MenuItem("Build/Upload All CCD")]
+    private static async void UploadAllCcd(IBuildInformation data)
+    {
+        if (data.CCdInfo.StringIsNullOrEmpty())
+        {
+            return;
+        }
+
+        var ccdInfo = JsonUtility.FromJson<UnityCCDInfo>(data.CCdInfo);
+
+        if (!ccdInfo.allowUpdate)
+        {
+            return;
+        }
+
+        if (ccdInfo.bucketId.StringIsNullOrEmpty() ||
+            ccdInfo.clientId.StringIsNullOrEmpty() ||
+            ccdInfo.clientSecret.StringIsNullOrEmpty() ||
+            ccdInfo.projectId.StringIsNullOrEmpty() ||
+            ccdInfo.environmentId.StringIsNullOrEmpty())
+        {
+            throw new Exception("❌ Thông tin CCD không đầy đủ. Vui lòng kiểm tra lại.");
+        }
+
+        var ccdBuildPath  = $"{CommonServices.GetProjectPath()}/CCDBuildData";
+        var searchPattern = "*.bundle";
+        var bundleFiles   = Directory.GetFiles(ccdBuildPath, searchPattern, SearchOption.AllDirectories);
+        var listTask      = new List<Task>();
+        var listOut       = new List<string>();
+
+        foreach (var file in bundleFiles)
+        {
+            CommonServices.LogMessage($"📤 Đang Process {file} lên CCD...");
+            listTask.Add(UploadToCcd(file, ccdInfo.projectId, ccdInfo.environmentId, ccdInfo.bucketId, ccdInfo.clientId, ccdInfo.clientSecret, listOut));
+        }
+
+        await Task.WhenAll(listTask);
+
+        CommonServices.LogMessage(listOut.Count == bundleFiles.Length ? "✅ Tất cả file đã được upload lên CCD." : "❌ Không thể upload một số file lên CCD.");
+    }
+
+    private static async Task UploadToCcd(string filePath, string projectId, string environmentId, string bucketId, string keyId, string secretKey, List<string> output)
+    {
+        var client = new HttpClient();
+
+        var fileNameInCcd = Path.GetFileName(filePath);
+        var contentType   = "application/octet-stream";
+
+        var entryUrl = $"https://services.api.unity.com/ccd/management/v1/projects/{projectId}/environments/{environmentId}/buckets/{bucketId}/entries/";
+        CommonServices.LogMessage(entryUrl);
+        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{keyId}:{secretKey}"));
+        var contentHash = GetMD5Hash(filePath);
+        var contentSize = new FileInfo(filePath).Length;
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        CommonServices.LogMessage("📥 Đang lấy danh sách entries...");
+        var getResp = await client.GetAsync($"{entryUrl}");
+
+        if (!getResp.IsSuccessStatusCode)
+        {
+            CommonServices.LogMessage("❌ Không thể lấy danh sách entry.");
+
+            return;
+        }
+
+        var listJson = await getResp.Content.ReadAsStringAsync();
+        var entries  = JArray.Parse(listJson);
+
+        CommonServices.LogMessage($"🧹 Đang xoá {entries.Count} entries...");
+
+        foreach (var entry in entries)
+        {
+            var entryId = entry["entryid"]?.ToString();
+
+            if (string.IsNullOrEmpty(entryId)) continue;
+            var delResp = await client.DeleteAsync($"{entryUrl}/{entryId}");
+
+            CommonServices.LogMessage(delResp.IsSuccessStatusCode
+                ? $"✅ Xoá {entry["path"]}"
+                : $"❌ Lỗi xoá {entry["path"]}");
+        }
+
+        CommonServices.LogMessage("⬆️ Upload lại file...");
+
+        var payload = new
+        {
+            path         = fileNameInCcd,
+            content_hash = contentHash,
+            content_size = contentSize,
+            content_type = contentType,
+            signed_url   = true
+        };
+
+        var payloadJson = JsonConvert.SerializeObject(payload);
+
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+        var content  = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+        var response = await client.PostAsync(entryUrl, content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            CommonServices.LogMessage("❌ Failed to create entry:");
+            CommonServices.LogMessage(await response.Content.ReadAsStringAsync());
+
+            return;
+        }
+
+        var responseBody = await response.Content.ReadAsStringAsync();
+        CommonServices.LogMessage("✅ Entry created. Response:");
+        CommonServices.LogMessage(responseBody);
+
+        // Parse JSON và lấy signed_url
+        var json      = JObject.Parse(responseBody);
+        var signedUrl = json["signed_url"]?.ToString();
+
+        if (string.IsNullOrEmpty(signedUrl))
+        {
+            CommonServices.LogMessage("❌ signed_url not found in response.");
+
+            return;
+        }
+
+        // PUT file lên signed_url
+        CommonServices.LogMessage("📤 Uploading file to signed URL...");
+
+        await using var fileStream = File.OpenRead(filePath);
+
+        using var streamContent = new StreamContent(fileStream);
+
+        streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        var putResponse = await client.PutAsync(signedUrl, streamContent);
+
+        if (putResponse.IsSuccessStatusCode)
+        {
+            output.Add(filePath);
+            CommonServices.LogMessage("✅ Upload successful!");
+        }
+        else
+        {
+            CommonServices.LogMessage("❌ Upload failed:");
+            CommonServices.LogMessage(await putResponse.Content.ReadAsStringAsync());
+        }
+    }
+
+    static string GetMD5Hash(string filePath)
+    {
+        using var md5 = MD5.Create();
+
+        using var stream = File.OpenRead(filePath);
+
+        var hash = md5.ComputeHash(stream);
+
+        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+    }
+
+    #endregion
 }
