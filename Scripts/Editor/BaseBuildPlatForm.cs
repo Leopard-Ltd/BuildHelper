@@ -112,7 +112,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }
@@ -153,7 +153,7 @@ public abstract class BaseBuildPlatForm
 #endif
     }
 
-    protected Task AfterBuild(IBuildInformation data) { return ProcessCCD(); }
+    protected Task AfterBuild(IBuildInformation data) { return ProcessCcd(); }
 
     protected void SetScriptDefineSymbols(NamedBuildTarget targetGroup, string[] scripts) { PlayerSettings.SetScriptingDefineSymbols(targetGroup, scripts); }
 
@@ -170,19 +170,67 @@ public abstract class BaseBuildPlatForm
     #region Upload to CCD
 
     [MenuItem("Build/Upload CCD")]
-    public static async Task ProcessCCD()
+    public static async Task ProcessCcd()
     {
         var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
 
-        var ccdInfo      = JsonUtility.FromJson<UnityCCDInfo>(data.CCdInfo);
-        var totalEntries = await GetTotalEntries(ccdInfo);
-        await DeleteAllEntries(totalEntries, ccdInfo);
+        if (string.IsNullOrEmpty(data.CCdInfo))
+        {
+            return;
+        }
 
-        await UploadAllCcd(data);
+        var ccdInfo = JsonUtility.FromJson<UnityCCDInfo>(data.CCdInfo);
+
+        if (!ccdInfo.allowUpdate)
+        {
+            return;
+        }
+
+        var totalEntries    = await GetTotalEntries(ccdInfo);
+        var ccdBuildPath    = $"{CommonServices.GetProjectPath()}/CCDBuildData";
+        var searchPattern   = "*.bundle";
+        var localBundleFile = Directory.GetFiles(ccdBuildPath, searchPattern, SearchOption.AllDirectories).ToList();
+        var dic             = ConvertToPathContentSizeDictionary(totalEntries);
+
+        await DeleteAllEntries(totalEntries, ccdInfo, dic, localBundleFile);
+
+        await UploadAllCcd(data, localBundleFile);
+
+        if (localBundleFile.Count > 0)
+        {
+            await CreateNewRelease(ccdInfo);
+        }
+        else
+        {
+            CommonServices.LogMessage("No new file to upload to CCD.");
+        }
     }
 
-    private static async Task DeleteAllEntries(List<JObject> entries, UnityCCDInfo ccdInfo)
+    private static Dictionary<string, long> ConvertToPathContentSizeDictionary(List<JObject> entries)
     {
+        var result = new Dictionary<string, long>();
+
+        foreach (var entry in entries)
+        {
+            var path      = entry["path"]?.ToString();
+            var sizeToken = entry["content_size"];
+
+            if (!string.IsNullOrEmpty(path) && sizeToken != null && long.TryParse(sizeToken.ToString(), out var contentSize))
+            {
+                result[path] = contentSize;
+            }
+        }
+
+        return result;
+    }
+
+    private static async Task DeleteAllEntries(List<JObject> entries, UnityCCDInfo ccdInfo, Dictionary<string, long> nameToSize, List<string> localBundleFile)
+    {
+        if (nameToSize == null)
+        {
+            nameToSize = new Dictionary<string, long>();
+        }
+
         var client   = new HttpClient();
         var entryUrl = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/entries";
 
@@ -195,6 +243,21 @@ public abstract class BaseBuildPlatForm
             var entryId = entry["entryid"]?.ToString();
 
             if (string.IsNullOrEmpty(entryId)) continue;
+            var path      = entry["path"]?.ToString();
+            var cloudSize = nameToSize[path];
+
+            var localSize = localBundleFile.FirstOrDefault(file => file.EndsWith(entry["path"]?.ToString())) is { } file
+                ? new FileInfo(file).Length
+                : 0;
+
+            if (cloudSize == localSize && !ccdInfo.forceClearCache)
+            {
+                CommonServices.LogMessage($"✅ Skip {entry["path"]} (size: {cloudSize})");
+                localBundleFile.RemoveAll(file => file.EndsWith(entry["path"]?.ToString()));
+
+                continue;
+            }
+
             var delResp = await client.DeleteAsync($"{entryUrl}/{entryId}");
 
             CommonServices.LogMessage(delResp.IsSuccessStatusCode
@@ -205,7 +268,7 @@ public abstract class BaseBuildPlatForm
         }
     }
 
-    private static async Task UploadAllCcd(IBuildInformation data)
+    private static async Task UploadAllCcd(IBuildInformation data, List<string> bundleFiles)
     {
         if (data.CCdInfo.StringIsNullOrEmpty())
         {
@@ -228,11 +291,8 @@ public abstract class BaseBuildPlatForm
             throw new Exception("❌ Wrong CCD Info, please check again.");
         }
 
-        var ccdBuildPath  = $"{CommonServices.GetProjectPath()}/CCDBuildData";
-        var searchPattern = "*.bundle";
-        var bundleFiles   = Directory.GetFiles(ccdBuildPath, searchPattern, SearchOption.AllDirectories);
-        var listTask      = new List<Task>();
-        var listOut       = new List<string>();
+        var listTask = new List<Task>();
+        var listOut  = new List<string>();
 
         foreach (var file in bundleFiles)
         {
@@ -242,15 +302,13 @@ public abstract class BaseBuildPlatForm
 
         await Task.WhenAll(listTask);
 
-        if (listOut.Count < bundleFiles.Length)
+        if (listOut.Count < bundleFiles.Count)
         {
             throw new Exception("❌ Can not upload all files to CCD, please check the log for details.");
         }
-
-        CreateNewRelease(ccdInfo);
     }
 
-    private static async void CreateNewRelease(UnityCCDInfo ccdInfo)
+    private static async Task CreateNewRelease(UnityCCDInfo ccdInfo)
     {
         var url = $"https://services.api.unity.com/ccd/management/v1/projects/{ccdInfo.projectId}/environments/{ccdInfo.environmentId}/buckets/{ccdInfo.bucketId}/releases";
         CommonServices.LogMessage($"📦 Create new release: {url}");
@@ -324,7 +382,7 @@ public abstract class BaseBuildPlatForm
             if (entries.Count == 0)
                 break;
 
-            CommonServices.LogMessage($"📄 Get total entries at page{pageSize}: {entries.Count}");
+            CommonServices.LogMessage($"📄 Get total entries at page {pageSize}: {entries.Count}");
             allEntries.AddRange(entries.Cast<JObject>());
 
             if (entries.Count < pageSize)

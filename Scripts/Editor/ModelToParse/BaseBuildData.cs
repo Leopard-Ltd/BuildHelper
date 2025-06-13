@@ -21,10 +21,11 @@ public class BaseBuildData
 [System.Serializable]
 public class UnityCCDInfo
 {
-    public bool   allowUpdate   = false;
-    public string projectId     = "";
-    public string environmentId = "";
-    public string bucketId      = "";
-    public string clientId      = "";
-    public string clientSecret  = "";
+    public bool   allowUpdate     = false;
+    public string projectId       = "";
+    public bool   forceClearCache = false;
+    public string environmentId   = "";
+    public string bucketId        = "";
+    public string clientId        = "";
+    public string clientSecret    = "";
 }
