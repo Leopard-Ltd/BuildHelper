@@ -5,5 +5,6 @@
     string        DefineSymbol   { get; }
     string        VersionCode    { get; }
     public string TelegramWorker { get; }
-    string  CCdInfo        { get; }
+    string        CCdInfo        { get; }
+    bool          clearCached    { get; }
 }

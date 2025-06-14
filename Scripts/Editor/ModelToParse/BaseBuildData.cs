@@ -12,6 +12,7 @@ public class BaseBuildData
     public bool   clearCachedCredentials = false;
     public string useServicesAccount     = "true";
     public bool   IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
+    public bool   clearCached = false;
 
     public List<TelegramInformation> telegramInfos  = new List<TelegramInformation>();
     public string                    telegramWorker = "";

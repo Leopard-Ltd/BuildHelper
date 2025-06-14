@@ -11,6 +11,7 @@ public class BuildWebGlInformation : IBuildInformation
     public string VersionCode     => "1";
     public string TelegramWorker  => this.data.telegramWorker;
     public string CCdInfo         => this.data.ccdInfo;
+    public bool   clearCached     => this.data.clearCached;
 }
 
 [Serializable]

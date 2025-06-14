@@ -74,11 +74,17 @@ public static class CommonServices
 
     public static string GetPathInformation(string fileName)
     {
-        var buildPath = GetBuildPath();
-        var filePath  = buildPath.Replace("Build", "Configs");
-        filePath = $"{filePath}/{fileName}";
+        var buildPath = GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-        return filePath;
+        var lastFolder = Path.GetFileName(buildPath);
+        if (lastFolder == "Build")
+        {
+            var parent     = Path.GetDirectoryName(buildPath);
+            var configPath = Path.Combine(parent, "Configs");
+            return Path.Combine(configPath, fileName);
+        }
+
+        return Path.Combine(buildPath, fileName);
     }
 
     public static T GetDataModel<T>(string filePath) where T : class

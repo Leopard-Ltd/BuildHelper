@@ -11,6 +11,7 @@ public class BuildAndroidInformation : IBuildInformation
     public string VersionCode     => this.data.buildNumber;
     public string TelegramWorker  => this.data.telegramWorker;
     public string CCdInfo         => this.data.ccdInfo;
+    public bool   clearCached     => this.data.clearCached;
 }
 
 [Serializable]
