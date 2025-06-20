@@ -1,3 +1,4 @@
+#if UNITY_ANDROID
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -42,6 +43,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             PlayerSettings.bundleVersion = data.data.customVersion.version;
         }
 
+        var metadata      = Application.identifier + ",";
         var outputVersion = PlayerSettings.bundleVersion;
 
         var tmp = outputFileName.Split("-");
@@ -53,7 +55,8 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
         }
 
-        File.WriteAllText(CommonServices.GetPathInformation("buildversion.txt"), outputVersion);
+        metadata += outputVersion;
+        File.WriteAllText(CommonServices.GetPathInformation("AppMetadata.txt"), metadata);
 
         var buildPlayerOptions = new BuildPlayerOptions
         {
@@ -82,10 +85,14 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         errors = errors || buildResult.summary.result != BuildResult.Succeeded;
         Console.WriteLine(errors ? "*** Built Android Failed ***" : "Built android successfully!");
 
+        if (errors)
+        {
+            throw new Exception("Build Android Failed");
+        }
+
         Console.WriteLine(new string('=', 80));
         Console.WriteLine();
         await this.AfterBuild(data);
-        Debug.Log("Build Android Done");
     }
 
     private void SetDefaultSetting(BuildAndroidInformation data)
@@ -114,3 +121,4 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         PlayerSettings.Android.keyaliasPass      = data.data.aliasPass;
     }
 }
+#endif

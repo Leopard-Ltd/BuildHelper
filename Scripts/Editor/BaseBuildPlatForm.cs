@@ -26,6 +26,7 @@ public abstract class BaseBuildPlatForm
     {
         this.ResetBuildSettings();
         this.CheckToClearCached(data);
+
         try
         {
             PlayerSettings.SplashScreen.showUnityLogo = false;
@@ -42,17 +43,18 @@ public abstract class BaseBuildPlatForm
 
     private void CheckToClearCached(IBuildInformation data)
     {
-       if(!data.clearCached)return;
-       var bee=$"{CommonServices.GetProjectPath()}/Library/Bee";
-       if (Directory.Exists(bee))
-       {
-           Directory.Delete(bee, recursive: true);
-           CommonServices.LogMessage($"Deleted folder: {bee}");
-       }
-       else
-       {
-           CommonServices.LogMessage($"Folder does not exist: {bee}");
-       }
+        if (!data.clearCached) return;
+        var bee = $"{CommonServices.GetProjectPath()}/Library/Bee";
+
+        if (Directory.Exists(bee))
+        {
+            Directory.Delete(bee, recursive: true);
+            CommonServices.LogMessage($"Deleted folder: {bee}");
+        }
+        else
+        {
+            CommonServices.LogMessage($"Folder does not exist: {bee}");
+        }
     }
 
     private void FindAndSetGameVersion(IBuildInformation data)

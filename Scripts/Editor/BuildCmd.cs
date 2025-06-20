@@ -28,14 +28,18 @@ public class BuildCmd
     [MenuItem("Build/SetBlueprintPath")]
     static void SetBlueprintDataPath()
     {
+#if UNITY_ANDROID
+
         var buildAndroidPlatForm = new BuildAndroidPlatForm();
         var data                 = new BuildAndroidInformation();
         buildAndroidPlatForm.SetupBlueprintPath(data);
+#endif
     }
 
     [MenuItem("Build/Build Android from Editor")]
     static void BuildAndroidOnEditor()
     {
+#if UNITY_ANDROID
         var buildAndroidPlatForm = new BuildAndroidPlatForm();
         var data                 = new BuildAndroidInformation();
         var scriptDefineSymbol   = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.Android);
@@ -43,11 +47,13 @@ public class BuildCmd
         data.data.outputFileName   = "output-1.0.0-1";
 
         buildAndroidPlatForm.SetUpAndBuild(data);
+#endif
     }
 
     [MenuItem("Build/Build Android")]
     static async void BuildAndroid()
     {
+#if UNITY_ANDROID
         var data        = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
 
@@ -100,6 +106,7 @@ public class BuildCmd
 
             throw;
         }
+#endif
     }
 
     [MenuItem("Build/Build Ios")]

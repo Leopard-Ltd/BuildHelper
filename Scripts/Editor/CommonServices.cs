@@ -77,10 +77,12 @@ public static class CommonServices
         var buildPath = GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
         var lastFolder = Path.GetFileName(buildPath);
+
         if (lastFolder == "Build")
         {
             var parent     = Path.GetDirectoryName(buildPath);
             var configPath = Path.Combine(parent, "Configs");
+
             return Path.Combine(configPath, fileName);
         }
 
@@ -123,6 +125,7 @@ public static class CommonServices
 
         return false;
     }
+
     public static string GetBuildPath(string outputFileName, string platform = "Android") { return $"{GetBuildPath()}/Client/{platform}/{outputFileName}"; }
 
     public static string FindFileInFolder(string pathFolder, string searchPattern = "*.ipa")
@@ -160,9 +163,10 @@ public static class CommonServices
 
     public static string GetFinalAndroidBuildVersion()
     {
-        var version = System.IO.File.ReadAllText(GetPathInformation("buildversion.txt"));
+        var version = System.IO.File.ReadAllText(GetPathInformation("AppMetadata.txt"));
+        var tmp     = version.Split(",");
 
-        return version;
+        return tmp[1];
     }
 
     /// <summary>

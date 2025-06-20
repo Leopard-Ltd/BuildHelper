@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
@@ -40,9 +41,10 @@ public class BuildIosPlatForm : BaseBuildPlatForm
             PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
         }
 
-        var dPath = Application.dataPath;
-        dPath = CommonServices.GetPathInformation("buildversion.txt");
-        File.WriteAllText(dPath, PlayerSettings.bundleVersion);
+        var appMetadata = Application.identifier + ",";
+        appMetadata += PlayerSettings.bundleVersion;
+
+        File.WriteAllText(CommonServices.GetPathInformation("AppMetadata.txt"), appMetadata);
 
         var buildPlayerOptions = new BuildPlayerOptions
         {
@@ -55,8 +57,13 @@ public class BuildIosPlatForm : BaseBuildPlatForm
 
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
+        if (buildResult.summary.result != BuildResult.Succeeded)
+        {
+            throw new Exception("Build Android Failed");
+        }
         await this.AfterBuild(data);
         BuildCmd.WriteReport(buildResult);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
+        
     }
 }
