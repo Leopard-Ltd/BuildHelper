@@ -57,13 +57,14 @@ public class BuildIosPlatForm : BaseBuildPlatForm
 
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
+
         if (buildResult.summary.result != BuildResult.Succeeded)
         {
             throw new Exception("Build Android Failed");
         }
+
         await this.AfterBuild(data);
         BuildCmd.WriteReport(buildResult);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
-        
     }
 }

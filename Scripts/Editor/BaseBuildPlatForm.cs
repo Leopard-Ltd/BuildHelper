@@ -27,6 +27,15 @@ public abstract class BaseBuildPlatForm
         this.ResetBuildSettings();
         this.CheckToClearCached(data);
 
+        this.TryDisableLogo();
+
+        this.BuildAddressable(data);
+
+        EditorUserBuildSettings.development = data.IsDevelopment();
+    }
+
+    protected virtual void TryDisableLogo()
+    {
         try
         {
             PlayerSettings.SplashScreen.showUnityLogo = false;
@@ -35,10 +44,6 @@ public abstract class BaseBuildPlatForm
         {
             CommonServices.LogMessage(e);
         }
-
-        this.BuildAddressable(data);
-
-        EditorUserBuildSettings.development = data.IsDevelopment();
     }
 
     private void CheckToClearCached(IBuildInformation data)
@@ -129,7 +134,7 @@ public abstract class BaseBuildPlatForm
 
             if (schema != null)
             {
-                schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
+                schema.Compression                       = BundledAssetGroupSchema.BundleCompressionMode.LZMA;
                 schema.UseUnityWebRequestForLocalBundles = false;
             }
         }

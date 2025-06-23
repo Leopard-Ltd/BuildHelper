@@ -146,12 +146,12 @@ public static class UploadIOSBuild
 
         try
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName        = "open",
-                Arguments       = "\"" + archivePath + "\"",
-                UseShellExecute = true
-            });
+            // Process.Start(new ProcessStartInfo
+            // {
+            //     FileName        = "open",
+            //     Arguments       = "\"" + archivePath + "\"",
+            //     UseShellExecute = true
+            // });
         }
         catch (Exception ex)
         {
