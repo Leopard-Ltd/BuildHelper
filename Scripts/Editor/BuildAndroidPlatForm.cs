@@ -55,7 +55,8 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
         }
 
-        metadata += outputVersion;
+        metadata += outputVersion+",";
+        metadata += PlayerSettings.productName;
         File.WriteAllText(CommonServices.GetPathInformation("AppMetadata.txt"), metadata);
 
         var buildPlayerOptions = new BuildPlayerOptions

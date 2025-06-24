@@ -42,8 +42,7 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         }
 
         var appMetadata = Application.identifier + ",";
-        appMetadata += PlayerSettings.bundleVersion;
-
+        appMetadata += PlayerSettings.bundleVersion+","+PlayerSettings.productName;
         File.WriteAllText(CommonServices.GetPathInformation("AppMetadata.txt"), appMetadata);
 
         var buildPlayerOptions = new BuildPlayerOptions
