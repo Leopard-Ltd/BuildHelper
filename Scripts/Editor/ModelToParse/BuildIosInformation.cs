@@ -26,10 +26,10 @@ public class IosInformation : BaseBuildData
     public string        accountPassword        = "";
     public string        fastLanePath           = "";
     public string        fastLaneSession        = "";
+    public bool          isSandBox              = false;
+    public bool          IsUploadAppstoreConnect() { return this.shouldUploadToAppStore.Equals("true"); }
 
-    public bool IsUploadAppstoreConnect() { return this.shouldUploadToAppStore.Equals("true"); }
-
-    public bool OptimizeSizeBuild()    { return this.optimizeSizeBuild.Equals("true"); }
+    public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
     public bool IsDevelopment() { return this.isBuildDevelopment.Equals("true"); }
 }

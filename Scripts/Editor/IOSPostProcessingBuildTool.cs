@@ -46,6 +46,7 @@ public class IOSPostProcessingBuildTool
         {
             SetPlistConfig(pathToBuiltProject);
             SetProjectConfig(pathToBuiltProject);
+            SetupSandBox(pathToBuiltProject);
             Debug.Log("IOSPostProcessingBuildTool OnPostProcessBuild Success");
             Console.WriteLine($"IOSPostProcessingBuildTool OnPostProcessBuild : {pathToBuiltProject}");
         }
@@ -55,6 +56,53 @@ public class IOSPostProcessingBuildTool
 
             throw;
         }
+    }
+
+    private static void SetupSandBox(string pathToBuiltProject)
+    {
+        var data             = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
+
+        if (!data.data.isSandBox)
+        {
+            return;
+        }
+
+        var entitlementsFile = "Unity-iPhone.entitlements";
+        var entitlementsPath = Path.Combine(pathToBuiltProject, entitlementsFile);
+
+        var plist = new PlistDocument();
+
+        if (File.Exists(entitlementsPath))
+        {
+            plist.ReadFromFile(entitlementsPath);
+        }
+        else
+        {
+            plist.Create();
+        }
+
+        // 2. Bật App Sandbox
+        var rootDict = plist.root;
+        rootDict.SetBoolean("com.apple.security.app-sandbox", true);
+        // (Optional) Enable network access if needed
+        rootDict.SetBoolean("com.apple.security.network.client", true);
+
+
+        plist.WriteToFile(entitlementsPath);
+
+        var projPath = PBXProject.GetPBXProjectPath(pathToBuiltProject);
+        var    proj     = new PBXProject();
+        proj.ReadFromFile(projPath);
+
+#if UNITY_2019_3_OR_NEWER
+        string targetGUID = proj.GetUnityMainTargetGuid();
+#else
+        string targetGUID = proj.TargetGuidByName("Unity-iPhone");
+#endif
+
+        proj.AddFile(entitlementsFile, entitlementsFile);
+        proj.SetBuildProperty(targetGUID, "CODE_SIGN_ENTITLEMENTS", entitlementsFile);
+        proj.WriteToFile(projPath);
     }
 
     #region Main
@@ -72,7 +120,7 @@ public class IOSPostProcessingBuildTool
         var pbxProjectPath           = PBXProject.GetPBXProjectPath(pathToBuiltProject);
 
         SetAutomatic(data, pbxProject, mainTargetGuid);
-        
+
         // SetTeamManualy(data, pbxProject, mainTargetGuid);
         //set version
         pbxProject.SetBuildProperty(mainTargetGuid, "CURRENT_PROJECT_VERSION", PlayerSettings.iOS.buildNumber); // Set build number
@@ -89,11 +137,11 @@ public class IOSPostProcessingBuildTool
     {
         var teamID = data.data.signingTeamId; // Team ID
         pbxProject.SetTeamId(mainTargetGuid, teamID);
-        
+
         // Enable automatic signing
         pbxProject.SetBuildProperty(mainTargetGuid, "CODE_SIGN_STYLE", "Automatic");
     }
-    
+
     private static void SetTeamManualy(BuildIosInformation data, PBXProject pbxProject, string mainTargetGuid)
     {
         var teamID      = data.data.signingTeamId; // Team ID
@@ -221,4 +269,5 @@ public class IOSPostProcessingBuildTool
 
     #endregion
 }
+
 #endif
