@@ -52,7 +52,10 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
         if (data.data.customVersion.IsAutoVersion())
         {
-            PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
+            if (!PlayerSettings.bundleVersion.EndsWith($"{data.data.buildNumber}"))
+            {
+                PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
+            }
         }
 
         metadata += outputVersion+",";
