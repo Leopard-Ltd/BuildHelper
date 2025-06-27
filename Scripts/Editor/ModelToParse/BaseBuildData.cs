@@ -11,8 +11,10 @@ public class BaseBuildData
     public string buildEnvironment       = "Dev";
     public bool   clearCachedCredentials = false;
     public string useServicesAccount     = "true";
-    public bool   IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
-    public bool   clearCached = false;
+    public bool   stripCode              = true;
+
+    public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
+    public bool clearCached = false;
 
     public List<TelegramInformation> telegramInfos  = new List<TelegramInformation>();
     public string                    telegramWorker = "";

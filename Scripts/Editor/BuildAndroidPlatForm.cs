@@ -58,7 +58,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             }
         }
 
-        metadata += outputVersion+",";
+        metadata += outputVersion + ",";
         metadata += PlayerSettings.productName;
         File.WriteAllText(CommonServices.GetPathInformation("AppMetadata.txt"), metadata);
 
@@ -102,8 +102,18 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
     private void SetDefaultSetting(BuildAndroidInformation data)
     {
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
-        PlayerSettings.stripEngineCode             = true;
-        PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), ManagedStrippingLevel.High);
+
+        if (data.data.stripCode)
+        {
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
+        }
+        else
+        {
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.Minimal);
+        }
+
         PlayerSettings.Android.minifyDebug   = data.data.IsMinify();
         PlayerSettings.Android.minifyRelease = data.data.IsMinify();
 

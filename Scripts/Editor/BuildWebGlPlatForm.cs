@@ -16,8 +16,18 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
         var data = (BuildWebGlInformation)baseData;
 
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
-        PlayerSettings.stripEngineCode = true;
-        PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
+
+        if (data.data.stripCode)
+        {
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
+        }
+        else
+        {
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.Minimal);
+        }
+
         this.SetupOptional();
         //auto profile
         EditorUserBuildSettings.connectProfiler = data.IsDevelopment();
@@ -36,10 +46,12 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 
         this.PreprocessBuild(data);
         var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
+
         if (buildResult.summary.result != BuildResult.Succeeded)
         {
             throw new Exception("Build Android Failed");
         }
+
         await this.AfterBuild(data);
         BuildCmd.WriteReport(buildResult);
         CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");

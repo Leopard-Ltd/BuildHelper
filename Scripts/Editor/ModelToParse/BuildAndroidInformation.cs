@@ -17,19 +17,18 @@ public class BuildAndroidInformation : IBuildInformation
 [Serializable]
 public class AndroidInformation : BaseBuildData
 {
-    public string        keyName            = "user.keystore";
-    public string        keyPass            = "123456";
-    public string        aliasName          = "hai";
-    public string        aliasPass          = "123456";
-    public string        buildAppBundle     = "false";
-    public CustomVersion customVersion      = new CustomVersion();
-    public string        bundleIdentifier   = "";
-    public string        productName        = "";
-    public string        minify             = "true";
-    public string        splitBinary        = "true";
+    public string        keyName          = "user.keystore";
+    public string        keyPass          = "123456";
+    public string        aliasName        = "hai";
+    public string        aliasPass        = "123456";
+    public string        buildAppBundle   = "false";
+    public CustomVersion customVersion    = new CustomVersion();
+    public string        bundleIdentifier = "";
+    public string        productName      = "";
+    public string        minify           = "true";
+    public string        splitBinary      = "true";
 
-  
-    public bool BuildAppBundle()       { return this.buildAppBundle.Equals("true"); }
+    public bool BuildAppBundle() { return this.buildAppBundle.Equals("true"); }
 
     public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 
