@@ -17,7 +17,7 @@ public class UploadBuild
     static string     ZipFile  = "application/zip";
     static string     IpaFile  = "application/x-itunes-ipa";
 
-    [MenuItem("Build/UploadFile")]
+    [MenuItem("BuildHelper/UploadFile")]
     static void TestUpload() { UploadGoogleDriveWebGlPlatForm(); }
 
     static void RunNow()
@@ -90,7 +90,7 @@ public class UploadBuild
         }
     }
 
-    [MenuItem("Build/UploadIos")]
+    [MenuItem("BuildHelper/UploadIos")]
     static async void UploadGoogleDriveIosPlatform()
     {
         var isBatchMode = CommonServices.IsBatchMode();

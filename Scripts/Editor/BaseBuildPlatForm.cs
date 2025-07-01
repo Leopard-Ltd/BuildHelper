@@ -191,7 +191,7 @@ public abstract class BaseBuildPlatForm
 
     #region Upload to CCD
 
-    [MenuItem("Build/Upload CCD")]
+    [MenuItem("BuildHelper/Upload CCD")]
     public static async Task ProcessCcd()
     {
         var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));

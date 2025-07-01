@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +11,85 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public static class CommonServices
 {
+    public static async Task<string> RunTerminalCommandAsync(string command, string workingDirectory = null,bool createNoWindow = true)
+    {
+        var process = new Process();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            process.StartInfo.FileName  = "cmd.exe";
+            process.StartInfo.Arguments = $"/C {command}";
+        }
+        else
+        {
+            process.StartInfo.FileName  = "/bin/bash";
+            process.StartInfo.Arguments = $"-c \"{command}\"";
+        }
+
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError  = true;
+        
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.CreateNoWindow  = createNoWindow;
+
+        if (!string.IsNullOrWhiteSpace(workingDirectory))
+            process.StartInfo.WorkingDirectory = workingDirectory;
+
+        process.EnableRaisingEvents = true;
+
+        var outputTask = new TaskCompletionSource<string>();
+        var errorTask  = new TaskCompletionSource<string>();
+
+        var output = "";
+        var error  = "";
+
+        process.OutputDataReceived += (s, e) =>
+        {
+            if (e.Data == null)
+                outputTask.TrySetResult(output);
+            else
+                output += e.Data + Environment.NewLine;
+        };
+
+        process.ErrorDataReceived += (s, e) =>
+        {
+            if (e.Data == null)
+                errorTask.TrySetResult(error);
+            else
+                error += e.Data + Environment.NewLine;
+        };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        await Task.WhenAll(outputTask.Task, errorTask.Task, WaitForExitAsync(process));
+
+        LogMessage("=== Output ===");
+        LogMessage(outputTask.Task.Result);
+
+        if (!string.IsNullOrWhiteSpace(errorTask.Task.Result))
+        {
+            LogMessage("=== Error ===");
+            LogMessage(errorTask.Task.Result);
+        }
+
+        return output;
+    }
+
+    private static Task WaitForExitAsync(Process process)
+    {
+        var tcs = new TaskCompletionSource<object>();
+        process.Exited += (s, e) => tcs.TrySetResult(null);
+        if (process.HasExited) tcs.TrySetResult(null);
+
+        return tcs.Task;
+    }
+
     public static async Task<DriveService> GetDriveServices(bool isServicesAccount = true) { return isServicesAccount ? await GetService() : await GetDriveServicesWithCredential(); }
 
     public static async Task<DriveService> GetDriveServicesWithCredential()
@@ -163,7 +241,7 @@ public static class CommonServices
 
     public static string GetFinalAndroidBuildVersion()
     {
-        var version = System.IO.File.ReadAllText(GetPathInformation("AppMetadata.txt"));
+        var version = File.ReadAllText(GetPathInformation("AppMetadata.txt"));
         var tmp     = version.Split(",");
 
         return tmp[1];
@@ -171,6 +249,7 @@ public static class CommonServices
 
     /// <summary>
     /// Directory containt many project
+    /// Example C:\Users\YourName\Documents\UnityProjects\
     /// </summary>
     /// <returns></returns>
     public static string GetRootPath()

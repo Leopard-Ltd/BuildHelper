@@ -25,7 +25,7 @@ public class BuildCmd
         public BuildTargetGroup BuildTargetGroup;
     }
 
-    [MenuItem("Build/SetBlueprintPath")]
+    [MenuItem("BuildHelper/SetBlueprintPath")]
     static void SetBlueprintDataPath()
     {
 #if UNITY_ANDROID
@@ -36,7 +36,7 @@ public class BuildCmd
 #endif
     }
 
-    [MenuItem("Build/Build Android from Editor")]
+    [MenuItem("BuildHelper/Build Android from Editor")]
     static void BuildAndroidOnEditor()
     {
 #if UNITY_ANDROID
@@ -50,7 +50,7 @@ public class BuildCmd
 #endif
     }
 
-    [MenuItem("Build/Build Android")]
+    [MenuItem("BuildHelper/Build Android")]
     static async void BuildAndroid()
     {
 #if UNITY_ANDROID
@@ -109,7 +109,7 @@ public class BuildCmd
 #endif
     }
 
-    [MenuItem("Build/Build Ios")]
+    [MenuItem("BuildHelper/Build Ios")]
     static void BuildIos()
     {
         var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
@@ -137,7 +137,7 @@ public class BuildCmd
         }
     }
 
-    [MenuItem("Build/Build WebGl")]
+    [MenuItem("BuildHelper/Build WebGl")]
     static void BuildWebGL()
     {
         var data        = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
@@ -239,7 +239,7 @@ public class BuildCmd
         }
     }
 
-    [MenuItem("Build/UploadTestFlight")]
+    [MenuItem("BuildHelper/UploadTestFlight")]
     static void UploadTestFlight()
     {
         var isBatchMode = CommonServices.IsBatchMode();
@@ -249,7 +249,7 @@ public class BuildCmd
         OnAfterExecute(isBatchMode);
     }
 
-    [MenuItem("Build/UploadAAbToGooglePlay")]
+    [MenuItem("BuildHelper/UploadAAbToGooglePlay")]
     static void UploadAAbToGooglePlay()
     {
         var isBatchMode = CommonServices.IsBatchMode();
@@ -258,6 +258,16 @@ public class BuildCmd
         UploadAABToGooglePlay.UploadAAb();
 #endif
 
+        OnAfterExecute(isBatchMode);
+    }
+
+    [MenuItem("BuildHelper/ProcessBlueprint")]
+    static async void BlueprintWorkFlow()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+#if ADDRESSABLE && BLUEPRINT_WORKFLOW
+        await new BlueprintWorkFlow().ProcessBlueprint();
+#endif
         OnAfterExecute(isBatchMode);
     }
 

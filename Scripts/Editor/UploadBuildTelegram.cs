@@ -9,7 +9,7 @@ using UnityEditor;
 
 public class UploadBuildTelegram
 {
-    [MenuItem("Build/UploadTelegramWebgl")]
+    [MenuItem("BuildHelper/UploadTelegramWebgl")]
     static async void UploadWebGl()
     {
         var isBatchMode = CommonServices.IsBatchMode();
@@ -116,7 +116,7 @@ public class UploadBuildTelegram
         }
     }
 
-    [MenuItem("Build/UploadTelegramAndroid")]
+    [MenuItem("BuildHelper/UploadTelegramAndroid")]
     static async void UploadAndroid()
     {
         var isBatchMode = CommonServices.IsBatchMode();
