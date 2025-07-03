@@ -71,7 +71,7 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             targetGroup      = BuildTargetGroup.Android
         };
 
-        PlayerSettings.SetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(buildPlayerOptions.targetGroup), ScriptingImplementation.IL2CPP);
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(buildPlayerOptions.targetGroup),  data.data.scriptingBackend.Equals("il2cpp") ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x);
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
 
 #if UNITY_6000_0_OR_NEWER
@@ -106,12 +106,12 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
         if (data.data.stripCode)
         {
             PlayerSettings.stripEngineCode = true;
-            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), ManagedStrippingLevel.High);
         }
         else
         {
             PlayerSettings.stripEngineCode = true;
-            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.Minimal);
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), ManagedStrippingLevel.Minimal);
         }
 
         PlayerSettings.Android.minifyDebug   = data.data.IsMinify();

@@ -32,12 +32,12 @@ public class BuildIosPlatForm : BaseBuildPlatForm
         if (data.data.stripCode)
         {
             PlayerSettings.stripEngineCode = true;
-            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.High);
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.iOS), ManagedStrippingLevel.High);
         }
         else
         {
             PlayerSettings.stripEngineCode = true;
-            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.WebGL), ManagedStrippingLevel.Minimal);
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.iOS), ManagedStrippingLevel.Minimal);
         }
 
         if (data.data.customVersion.IsCustomVersion())
