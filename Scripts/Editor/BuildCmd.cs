@@ -262,11 +262,11 @@ public class BuildCmd
     }
 
     [MenuItem("BuildHelper/ProcessBlueprint")]
-    static async void BlueprintWorkFlow()
+    static async void BlueprintWorkFlowAndroid()
     {
         var isBatchMode = CommonServices.IsBatchMode();
 #if ADDRESSABLE && BLUEPRINT_WORKFLOW
-        await new BlueprintWorkFlow().ProcessBlueprint();
+        await new BlueprintWorkFlowAndroid().ProcessBlueprint();
 #endif
         OnAfterExecute(isBatchMode);
     }

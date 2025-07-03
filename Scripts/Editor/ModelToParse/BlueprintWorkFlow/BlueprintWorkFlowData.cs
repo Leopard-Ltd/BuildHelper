@@ -1,10 +1,13 @@
 [System.Serializable]
 public class BlueprintWorkFlowData
 {
-    public string addressableProfile   = "GithubCCD";
+    public string addressableProfile = "GithubCCD";
+    public string environmentName    = "production";
+    public string platFormName       = "android";
+    public string versionName        = "v1";
+    
     public string remoteBuildPath      = "";
     public string remoteLoadPath       = "";
-    public string environmentName      = "production";
     public string blueprintName        = "Blueprints";
     public string blueprintVersion     = "v0.0.1";
     public string labelName            = "";

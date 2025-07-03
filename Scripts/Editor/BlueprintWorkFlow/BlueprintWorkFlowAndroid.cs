@@ -20,15 +20,18 @@ using CompressionLevel = System.IO.Compression.CompressionLevel;
 /// <summary>
 /// Sync from GoogleDrive => Assign to Group Addressable => build addressable groups=> Upload to CDN
 /// </summary>
-public class BlueprintWorkFlow
+public class BlueprintWorkFlowAndroid
 {
-    public async Task ProcessBlueprint()
+    public virtual async Task ProcessBlueprint()
     {
-        var data                 = this.GetBlueprintWorkFlowData();
+        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+        var data = this.GetBlueprintWorkFlowData();
+
         var blueprintVersionPath = await this.GetAllDataFromGoogleDrive(data);
         await this.ProcessAddressable(data);
         this.AddBlueprintFolderPathToAddressable(this.ConvertObsoleteToRelative(blueprintVersionPath), $"{data.blueprintName}_{data.blueprintVersion}", data.groupAssignBlueprint, data.labelName);
         await this.BuildAddressable();
+        this.MoveCatalogToCCDData(data);
 
         switch (data.ccdPlatform.ToLower())
         {
@@ -39,7 +42,22 @@ public class BlueprintWorkFlow
         }
     }
 
-    private async Task UploadToGithub(BlueprintWorkFlowData data)
+    protected virtual void MoveCatalogToCCDData(BlueprintWorkFlowData data)
+    {
+        var ccdFilePath = $"{CommonServices.GetProjectPath()}/{data.remoteBuildPath}";
+        var dataPath    = $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/Android";
+
+        var catalogBin  = $"{dataPath}/catalog.bin";
+        var catalogHash = $"{dataPath}/catalog.hash";
+        var settings    = $"{dataPath}/settings.json";
+
+        //copy to ccdFilePath
+        File.Copy(catalogBin, $"{ccdFilePath}/catalog.bin", true);
+        File.Copy(catalogHash, $"{ccdFilePath}/catalog.hash", true);
+        File.Copy(settings, $"{ccdFilePath}/settings.json", true);
+    }
+
+    protected virtual async Task UploadToGithub(BlueprintWorkFlowData data)
     {
         var gitFolderPath = $"{CommonServices.GetRootPath()}GitCCD";
 
@@ -67,10 +85,37 @@ public class BlueprintWorkFlow
                 throw new DirectoryNotFoundException($"Git folder path does not exist: {gitFolderPath}");
             }
 
-            await CommonServices.RunTerminalCommandAsync($"git checkout -b {data.githubCdnData.branchName}", gitFolderPath);
             await CommonServices.RunTerminalCommandAsync("git reset --hard", gitFolderPath);
             await CommonServices.RunTerminalCommandAsync("git clean -fd", gitFolderPath);
-            await CommonServices.RunTerminalCommandAsync($"git pull origin {data.githubCdnData.branchName}", gitFolderPath);
+            // 1. Checkout to random branch
+            var randomBranchName = "feature/random-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+            await CommonServices.RunTerminalCommandAsync($"git checkout -B {randomBranchName}", gitFolderPath);
+
+            var allBranchesRaw = await CommonServices.RunTerminalCommandAsync("git branch", gitFolderPath);
+
+            var branches = allBranchesRaw
+                .Split('\n')
+                .Select(b => b.Replace("*", "").Trim())
+                .Where(b => !string.IsNullOrWhiteSpace(b) && b != randomBranchName)
+                .ToList();
+
+            foreach (var branch in branches)
+            {
+                Console.WriteLine($"Delete branch: {branch}");
+                _ = CommonServices.RunTerminalCommandAsync($"git branch -D {branch}", gitFolderPath);
+            }
+
+            await CommonServices.RunTerminalCommandAsync(
+                $"git checkout -B {data.githubCdnData.branchName} origin/{data.githubCdnData.branchName}",
+                gitFolderPath
+            );
+
+            await CommonServices.RunTerminalCommandAsync($"git branch -D {randomBranchName}", gitFolderPath);
+
+            await CommonServices.RunTerminalCommandAsync(
+                $"git pull origin {data.githubCdnData.branchName}",
+                gitFolderPath
+            );
         }
 
         // Copy CCD files
@@ -81,7 +126,7 @@ public class BlueprintWorkFlow
             gitRootFolder = Path.Combine(gitRootFolder, data.githubCdnData.rootFolder);
         }
 
-        var hasChange = this.MoveAllBundleCCdToGitCCd(data, gitRootFolder);
+        var hasChange = this.MoveALlCCdataToGitHubCCd(data, gitRootFolder);
 
         if (hasChange)
         {
@@ -117,7 +162,7 @@ public class BlueprintWorkFlow
         }
     }
 
-    private void ForceDeleteDirectory(string targetDir)
+    protected virtual void ForceDeleteDirectory(string targetDir)
     {
         var files = Directory.GetFiles(targetDir, "*", SearchOption.AllDirectories);
         var dirs  = Directory.GetDirectories(targetDir, "*", SearchOption.AllDirectories);
@@ -154,21 +199,21 @@ public class BlueprintWorkFlow
         Directory.Delete(targetDir, true);
     }
 
-    private bool MoveAllBundleCCdToGitCCd(BlueprintWorkFlowData data, string gitRootFolder)
+    protected virtual bool MoveALlCCdataToGitHubCCd(BlueprintWorkFlowData data, string gitRootFolder)
     {
         var hasFileChanged = false;
         var projectPath    = CommonServices.GetProjectPath();
         var ccdFilePath    = Path.Combine(projectPath, data.remoteBuildPath);
 
         // Get all bundle and json files
-        var bundleFiles = Directory.GetFiles(ccdFilePath, "*.*", SearchOption.AllDirectories)
-            .Where(file => file.EndsWith(".bundle") || file.EndsWith(".json"))
+        var ccdFiles = Directory.GetFiles(ccdFilePath, "*.*", SearchOption.AllDirectories)
+            .Where(file => file.EndsWith(".bundle") || file.EndsWith(".json") || file.EndsWith(".bin") || file.EndsWith(".hash"))
             .ToList();
 
-        foreach (var file in bundleFiles)
+        //Delete old files in gitRootFolder
+        if (ccdFiles.Count > 0)
         {
-            // Lấy relative path so với toàn bộ project
-            var relativePath = Path.GetRelativePath(projectPath, file)
+            var relativePath = Path.GetRelativePath(projectPath, ccdFiles[0])
                 .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             var destinationPath      = Path.Combine(gitRootFolder, relativePath);
@@ -179,21 +224,19 @@ public class BlueprintWorkFlow
                 Directory.CreateDirectory(destinationDirectory);
             }
 
-            if (File.Exists(destinationPath))
+            foreach (var file in Directory.GetFiles(destinationDirectory))
             {
-                var sourceFileName = Path.GetFileName(file);
-                var destFileName   = Path.GetFileName(destinationPath);
-
-                if (string.Equals(sourceFileName, destFileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    CommonServices.LogMessage($"Skipped {file} (same name exists)");
-
-                    continue;
-                }
-
-                File.Delete(destinationPath);
-                CommonServices.LogMessage($"Deleted old file: {destinationPath}");
+                File.Delete(file);
             }
+        }
+
+        foreach (var file in ccdFiles)
+        {
+            // Lấy relative path so với toàn bộ project
+            var relativePath = Path.GetRelativePath(projectPath, file)
+                .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            var destinationPath = Path.Combine(gitRootFolder, relativePath);
 
             hasFileChanged = true;
             File.Copy(file, destinationPath, true);
@@ -203,7 +246,7 @@ public class BlueprintWorkFlow
         return hasFileChanged;
     }
 
-    private async Task BuildAddressable()
+    protected virtual async Task BuildAddressable()
     {
         AddressableAssetSettings.CleanPlayerContent();
         CommonServices.LogMessage($"--------------------");
@@ -225,7 +268,7 @@ public class BlueprintWorkFlow
         CommonServices.LogMessage($"--------------------");
     }
 
-    private string ConvertObsoleteToRelative(string absolutePath)
+    protected virtual string ConvertObsoleteToRelative(string absolutePath)
     {
         var projectPath = Application.dataPath;
 
@@ -519,7 +562,7 @@ public class BlueprintWorkFlow
 
     #region Addressable Flow
 
-    private void AddBlueprintFolderPathToAddressable(string assetPath, string addressableKey, string groupName, string label)
+    protected virtual void AddBlueprintFolderPathToAddressable(string assetPath, string addressableKey, string groupName, string label)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
 
@@ -542,15 +585,28 @@ public class BlueprintWorkFlow
         var guid  = AssetDatabase.AssetPathToGUID(assetPath);
         var entry = settings.CreateOrMoveEntry(guid, group);
         entry.address = addressableKey;
+        var defaultLabel = addressableKey;
+
+        if (!settings.GetLabels().Contains(defaultLabel))
+        {
+            settings.AddLabel(defaultLabel);
+        }
+
+        if (!entry.labels.Contains(defaultLabel))
+        {
+            entry.SetLabel(defaultLabel, true);
+        }
 
         if (!string.IsNullOrEmpty(label))
         {
-            if (settings.GetLabels().Contains(label))
+            if (!settings.GetLabels().Contains(label))
             {
-                if (!entry.labels.Contains(label))
-                {
-                    entry.SetLabel(label, true);
-                }
+                settings.AddLabel(label);
+            }
+
+            if (!entry.labels.Contains(label))
+            {
+                entry.SetLabel(label, true);
             }
         }
 
@@ -560,7 +616,7 @@ public class BlueprintWorkFlow
         Debug.Log($"Added to Addressable: {assetPath} → Group: {groupName} with key '{addressableKey}'");
     }
 
-    private async Task ProcessAddressable(BlueprintWorkFlowData data)
+    protected virtual async Task ProcessAddressable(BlueprintWorkFlowData data)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
 
@@ -599,9 +655,10 @@ public class BlueprintWorkFlow
             if (!schema) continue;
             schema.BuildPath.SetVariableByName(settings, "Remote.BuildPath");
             schema.LoadPath.SetVariableByName(settings, "Remote.LoadPath");
-            schema.UseAssetBundleCache = true;
-            schema.UseAssetBundleCrc   = true;
-            schema.BundleMode          = BundledAssetGroupSchema.BundlePackingMode.PackSeparately;
+            schema.UseAssetBundleCache            = true;
+            schema.UseAssetBundleCrc              = true;
+            schema.BundleMode                     = BundledAssetGroupSchema.BundlePackingMode.PackSeparately;
+            schema.AssetBundledCacheClearBehavior = BundledAssetGroupSchema.CacheClearBehavior.ClearWhenWhenNewVersionLoaded;
             EditorUtility.SetDirty(schema);
             AssetDatabase.SaveAssets();
 
@@ -611,7 +668,7 @@ public class BlueprintWorkFlow
         AssetDatabase.Refresh();
     }
 
-    private void EnsureVariableExists(AddressableAssetProfileSettings settings, string varName, string defaultValue)
+    protected virtual void EnsureVariableExists(AddressableAssetProfileSettings settings, string varName, string defaultValue)
     {
         if (!settings.GetAllProfileNames().Contains(varName))
         {
@@ -619,17 +676,17 @@ public class BlueprintWorkFlow
         }
     }
 
-    private BlueprintWorkFlowData GetBlueprintWorkFlowData()
+    protected virtual BlueprintWorkFlowData GetBlueprintWorkFlowData()
     {
         // return this.TestingGetBlueprintWorkFlowData();
         var result = CommonServices.GetDataModel<BlueprintWorkFlowData>(CommonServices.GetPathInformation("BlueprintWorkFlowData.json"));
-        result.remoteBuildPath = $"{result.remoteBuildPath}/{result.environmentName}";
+        result.remoteBuildPath = $"{result.remoteBuildPath}/{result.environmentName}/{result.platFormName}/{result.versionName}";
         result.remoteLoadPath  = $"{result.remoteLoadPath}/{result.remoteBuildPath}";
 
         return result;
     }
 
-    private BlueprintWorkFlowData TestingGetBlueprintWorkFlowData()
+    protected virtual BlueprintWorkFlowData TestingGetBlueprintWorkFlowData()
     {
         var data = new BlueprintWorkFlowData();
         data.addressableProfile   = "Testing";
