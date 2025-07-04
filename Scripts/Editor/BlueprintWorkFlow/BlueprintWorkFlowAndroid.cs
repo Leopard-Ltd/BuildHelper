@@ -322,7 +322,7 @@ public class BlueprintWorkFlowAndroid
 
         var builderConfig = this.ParseCsvToDictionary(csvBuilder);
 
-        var directoryRootPath = Path.Combine(Application.dataPath, "BlueprintData");
+        var directoryRootPath = Path.Combine(Application.dataPath, "BlueprintRoot");
 
         if (AssetDatabase.IsValidFolder(directoryRootPath))
         {
@@ -643,27 +643,23 @@ public class BlueprintWorkFlowAndroid
         profileSettings.SetValue(profileId, "EnvironmentName", data.environmentName);
         settings.activeProfileId = profileId;
 
-        foreach (var g in settings.groups)
+        var group = settings.FindGroup(data.groupAssignBlueprint);
+
+        if (group == null)
         {
-            var schema = g.GetSchema<BundledAssetGroupSchema>();
-
-            if (!g.Name.Equals(data.groupAssignBlueprint))
-            {
-                continue;
-            }
-
-            if (!schema) continue;
-            schema.BuildPath.SetVariableByName(settings, "Remote.BuildPath");
-            schema.LoadPath.SetVariableByName(settings, "Remote.LoadPath");
-            schema.UseAssetBundleCache            = true;
-            schema.UseAssetBundleCrc              = true;
-            schema.BundleMode                     = BundledAssetGroupSchema.BundlePackingMode.PackSeparately;
-            schema.AssetBundledCacheClearBehavior = BundledAssetGroupSchema.CacheClearBehavior.ClearWhenWhenNewVersionLoaded;
-            EditorUtility.SetDirty(schema);
-            AssetDatabase.SaveAssets();
-
-            break;
+            group = settings.CreateGroup(data.groupAssignBlueprint, false, false, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
         }
+        
+        var schema = group.GetSchema<BundledAssetGroupSchema>();
+       
+        schema.BuildPath.SetVariableByName(settings, "Remote.BuildPath");
+        schema.LoadPath.SetVariableByName(settings, "Remote.LoadPath");
+        schema.UseAssetBundleCache            = true;
+        schema.UseAssetBundleCrc              = true;
+        schema.BundleMode                     = BundledAssetGroupSchema.BundlePackingMode.PackSeparately;
+        schema.AssetBundledCacheClearBehavior = BundledAssetGroupSchema.CacheClearBehavior.ClearWhenWhenNewVersionLoaded;
+        EditorUtility.SetDirty(schema);
+        AssetDatabase.SaveAssets();
 
         AssetDatabase.Refresh();
     }
