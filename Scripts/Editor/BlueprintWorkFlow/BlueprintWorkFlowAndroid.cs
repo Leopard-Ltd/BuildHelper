@@ -24,7 +24,7 @@ public class BlueprintWorkFlowAndroid
 {
     public virtual async Task ProcessBlueprint()
     {
-        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+        this.SetActiveBuild();
         var data = this.GetBlueprintWorkFlowData();
 
         var blueprintVersionPath = await this.GetAllDataFromGoogleDrive(data);
@@ -42,10 +42,20 @@ public class BlueprintWorkFlowAndroid
         }
     }
 
-    protected virtual void MoveCatalogToCCDData(BlueprintWorkFlowData data)
+    protected virtual void SetActiveBuild()
+    {
+        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+    }
+
+    protected virtual string GetAALibrary()
+    {
+        return  $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/Android";
+    }
+
+    private void MoveCatalogToCCDData(BlueprintWorkFlowData data)
     {
         var ccdFilePath = $"{CommonServices.GetProjectPath()}/{data.remoteBuildPath}";
-        var dataPath    = $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/Android";
+        var dataPath    = this.GetAALibrary();
 
         var catalogBin  = $"{dataPath}/catalog.bin";
         var catalogHash = $"{dataPath}/catalog.hash";
@@ -57,7 +67,7 @@ public class BlueprintWorkFlowAndroid
         File.Copy(settings, $"{ccdFilePath}/settings.json", true);
     }
 
-    protected virtual async Task UploadToGithub(BlueprintWorkFlowData data)
+    private async Task UploadToGithub(BlueprintWorkFlowData data)
     {
         var gitFolderPath = $"{CommonServices.GetRootPath()}GitCCD";
 
@@ -162,7 +172,7 @@ public class BlueprintWorkFlowAndroid
         }
     }
 
-    protected virtual void ForceDeleteDirectory(string targetDir)
+    private void ForceDeleteDirectory(string targetDir)
     {
         var files = Directory.GetFiles(targetDir, "*", SearchOption.AllDirectories);
         var dirs  = Directory.GetDirectories(targetDir, "*", SearchOption.AllDirectories);
@@ -199,7 +209,7 @@ public class BlueprintWorkFlowAndroid
         Directory.Delete(targetDir, true);
     }
 
-    protected virtual bool MoveALlCCdataToGitHubCCd(BlueprintWorkFlowData data, string gitRootFolder)
+    private bool MoveALlCCdataToGitHubCCd(BlueprintWorkFlowData data, string gitRootFolder)
     {
         var hasFileChanged = false;
         var projectPath    = CommonServices.GetProjectPath();
@@ -246,7 +256,7 @@ public class BlueprintWorkFlowAndroid
         return hasFileChanged;
     }
 
-    protected virtual async Task BuildAddressable()
+    private async Task BuildAddressable()
     {
         AddressableAssetSettings.CleanPlayerContent();
         CommonServices.LogMessage($"--------------------");
@@ -268,7 +278,7 @@ public class BlueprintWorkFlowAndroid
         CommonServices.LogMessage($"--------------------");
     }
 
-    protected virtual string ConvertObsoleteToRelative(string absolutePath)
+    private string ConvertObsoleteToRelative(string absolutePath)
     {
         var projectPath = Application.dataPath;
 
@@ -282,7 +292,7 @@ public class BlueprintWorkFlowAndroid
         return relativePath;
     }
 
-    protected virtual SheetsService GetSheetsService(string json)
+    private SheetsService GetSheetsService(string json)
     {
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
@@ -427,7 +437,7 @@ public class BlueprintWorkFlowAndroid
         return sheets.ToList();
     }
 
-    protected virtual async Task<Dictionary<string, CustomValueRange>> GetAllDataForAllSheet(List<Sheet> sheets, string spreadsheetId, SheetsService service)
+    private async Task<Dictionary<string, CustomValueRange>> GetAllDataForAllSheet(List<Sheet> sheets, string spreadsheetId, SheetsService service)
     {
         const int batchSize        = 50;
         var       valueRangeDict   = new Dictionary<string, ValueRange>();
@@ -562,7 +572,7 @@ public class BlueprintWorkFlowAndroid
 
     #region Addressable Flow
 
-    protected virtual void AddBlueprintFolderPathToAddressable(string assetPath, string addressableKey, string groupName, string label)
+    private void AddBlueprintFolderPathToAddressable(string assetPath, string addressableKey, string groupName, string label)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
 
@@ -616,7 +626,7 @@ public class BlueprintWorkFlowAndroid
         Debug.Log($"Added to Addressable: {assetPath} → Group: {groupName} with key '{addressableKey}'");
     }
 
-    protected virtual async Task ProcessAddressable(BlueprintWorkFlowData data)
+    private async Task ProcessAddressable(BlueprintWorkFlowData data)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
 
@@ -664,7 +674,7 @@ public class BlueprintWorkFlowAndroid
         AssetDatabase.Refresh();
     }
 
-    protected virtual void EnsureVariableExists(AddressableAssetProfileSettings settings, string varName, string defaultValue)
+    private void EnsureVariableExists(AddressableAssetProfileSettings settings, string varName, string defaultValue)
     {
         if (!settings.GetAllProfileNames().Contains(varName))
         {
@@ -672,7 +682,7 @@ public class BlueprintWorkFlowAndroid
         }
     }
 
-    protected virtual BlueprintWorkFlowData GetBlueprintWorkFlowData()
+    private BlueprintWorkFlowData GetBlueprintWorkFlowData()
     {
         // return this.TestingGetBlueprintWorkFlowData();
         var result = CommonServices.GetDataModel<BlueprintWorkFlowData>(CommonServices.GetPathInformation("BlueprintWorkFlowData.json"));
@@ -682,7 +692,7 @@ public class BlueprintWorkFlowAndroid
         return result;
     }
 
-    protected virtual BlueprintWorkFlowData TestingGetBlueprintWorkFlowData()
+    private BlueprintWorkFlowData TestingGetBlueprintWorkFlowData()
     {
         var data = new BlueprintWorkFlowData();
         data.addressableProfile   = "Testing";

@@ -261,12 +261,32 @@ public class BuildCmd
         OnAfterExecute(isBatchMode);
     }
 
-    [MenuItem("BuildHelper/ProcessBlueprint")]
+    [MenuItem("BuildHelper/ProcessBlueprintAndroid")]
     static async void BlueprintWorkFlowAndroid()
     {
         var isBatchMode = CommonServices.IsBatchMode();
 #if ADDRESSABLE && BLUEPRINT_WORKFLOW
         await new BlueprintWorkFlowAndroid().ProcessBlueprint();
+#endif
+        OnAfterExecute(isBatchMode);
+    }
+
+    [MenuItem("BuildHelper/ProcessBlueprintIos")]
+    static async void BlueprintWorkFlowIos()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+#if ADDRESSABLE && BLUEPRINT_WORKFLOW
+        await new BlueprintWorkFlowIos().ProcessBlueprint();
+#endif
+        OnAfterExecute(isBatchMode);
+    }
+
+    [MenuItem("BuildHelper/ProcessBlueprintWegbl")]
+    static async void BlueprintWorkFlowWebgl()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+#if ADDRESSABLE && BLUEPRINT_WORKFLOW && UNITY_WEBGL
+        await new BlueprintWorkFlowWebGl().ProcessBlueprint();
 #endif
         OnAfterExecute(isBatchMode);
     }
