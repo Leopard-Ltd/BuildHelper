@@ -143,7 +143,7 @@ public class BlueprintWorkFlowAndroid
             await CommonServices.RunTerminalCommandAsync("git add .", gitFolderPath);
 
             var currentTime   = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            var commitMessage = $"{currentTime} Update {data.blueprintName} version {data.blueprintVersion}";
+            var commitMessage = $"Update {data.environmentName} {data.blueprintName} version {data.blueprintVersion}";
 
             await CommonServices.RunTerminalCommandAsync($"git commit -m \"{commitMessage}\"", gitFolderPath);
             await CommonServices.RunTerminalCommandAsync($"git push origin {data.githubCdnData.branchName}", gitFolderPath);
