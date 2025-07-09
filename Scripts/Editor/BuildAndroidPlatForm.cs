@@ -13,7 +13,6 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
     public override async Task SetUpAndBuild(IBuildInformation baseData)
     {
-        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         var data = (BuildAndroidInformation)baseData;
         this.SetPassword(data);
         await base.SetUpAndBuild(data);

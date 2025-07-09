@@ -50,6 +50,45 @@ public class BuildCmd
 #endif
     }
 
+    static void SwitchPlatform()
+    {
+        var isBatchMode = CommonServices.IsBatchMode();
+        var pathAndroid = CommonServices.GetPathInformation("AndroidInformation.json");
+        var pathIos     = CommonServices.GetPathInformation("IosInformation.json");
+        var pathWebGl   = CommonServices.GetPathInformation("WebGlInformation.json");
+
+        if (File.Exists(pathAndroid))
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
+            {
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+          }
+        }
+        else if (File.Exists(pathIos))
+        {
+           if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.iOS)
+           {
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
+           }
+        }
+        else if (File.Exists(pathWebGl))
+        {
+           if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
+           {
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
+           }
+        }
+
+        if (isBatchMode)
+        {
+            EditorApplication.Exit(0);
+        }
+        else
+        {
+            CommonServices.LogMessage("Switched platform successfully.");
+        }
+    }
+
     [MenuItem("BuildHelper/Build Android")]
     static async void BuildAndroid()
     {
