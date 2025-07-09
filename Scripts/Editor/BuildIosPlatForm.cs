@@ -10,8 +10,8 @@ public class BuildIosPlatForm : BaseBuildPlatForm
 {
     public override async Task SetUpAndBuild(IBuildInformation baseData)
     {
-        var data = (BuildIosInformation)baseData;
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
+        var data = (BuildIosInformation)baseData;
         await base.SetUpAndBuild(data);
 
         if (!string.IsNullOrEmpty(data.data.productName))

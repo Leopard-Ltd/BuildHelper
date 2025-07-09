@@ -1,9 +1,11 @@
 #if ADDRESSABLE && BLUEPRINT_WORKFLOW
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -26,6 +28,7 @@ public class BlueprintWorkFlowAndroid
     {
         this.SetActiveBuild();
         var data = this.GetBlueprintWorkFlowData();
+        _ = this.ClearPureCached(data);
 
         var blueprintVersionPath = await this.GetAllDataFromGoogleDrive(data);
         await this.ProcessAddressable(data);
@@ -42,15 +45,57 @@ public class BlueprintWorkFlowAndroid
         }
     }
 
-    protected virtual void SetActiveBuild()
+    private async Task ClearPureCached(BlueprintWorkFlowData data)
     {
-        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+        if (!data.ccdPlatform.ToLower().Equals("github"))
+        {
+            return;
+        }
+
+        var gitRootFolder = $"{CommonServices.GetRootPath()}GitCCD";
+
+        if (!string.IsNullOrEmpty(data.githubCdnData.gitExistPath))
+            gitRootFolder = data.githubCdnData.gitExistPath;
+
+        if (!string.IsNullOrEmpty(data.githubCdnData.rootFolder))
+            gitRootFolder = Path.Combine(gitRootFolder, data.githubCdnData.rootFolder);
+
+        var dataAllBundle = Path.Combine(gitRootFolder, data.remoteBuildPath);
+
+        if (!Directory.Exists(dataAllBundle))
+            return;
+
+        var ccdFiles = Directory.GetFiles(dataAllBundle, "*.*", SearchOption.AllDirectories).ToList();
+
+        var basePath = new Uri(data.remoteLoadPath).AbsolutePath.Trim('/');
+
+        try
+        {
+            foreach (var s in ccdFiles)
+            {
+                var relativePath = Path.GetRelativePath(dataAllBundle, s)
+                    .Replace("\\", "/")
+                    .TrimStart('/');
+
+                var purgeUrl   = $"https://purge.jsdelivr.net/{basePath}/{relativePath}";
+                var httpClient = new HttpClient();
+
+                var response = await httpClient.GetAsync(purgeUrl);
+                var content  = await response.Content.ReadAsStringAsync();
+
+                CommonServices.LogMessage(response.IsSuccessStatusCode ? $"✅ Purged: {purgeUrl}" : $"⚠️ Failed to purge {purgeUrl}: {response.StatusCode}\n{content}");
+                await Task.Delay(1500);
+            }
+        }
+        catch (Exception ex)
+        {
+            CommonServices.LogMessage($"❌ Exception during purge: {ex.Message}");
+        }
     }
 
-    protected virtual string GetAALibrary()
-    {
-        return  $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/Android";
-    }
+    protected virtual void SetActiveBuild() { EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android); }
+
+    protected virtual string GetAALibrary() { return $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/Android"; }
 
     private void MoveCatalogToCCDData(BlueprintWorkFlowData data)
     {
@@ -143,7 +188,7 @@ public class BlueprintWorkFlowAndroid
             await CommonServices.RunTerminalCommandAsync("git add .", gitFolderPath);
 
             var currentTime   = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            var commitMessage = $"Update {data.environmentName} {data.blueprintName} version {data.blueprintVersion}";
+            var commitMessage = $"Update {data.environmentName} {data.versionName} {data.blueprintName} version {data.blueprintVersion}";
 
             await CommonServices.RunTerminalCommandAsync($"git commit -m \"{commitMessage}\"", gitFolderPath);
             await CommonServices.RunTerminalCommandAsync($"git push origin {data.githubCdnData.branchName}", gitFolderPath);
@@ -659,9 +704,9 @@ public class BlueprintWorkFlowAndroid
         {
             group = settings.CreateGroup(data.groupAssignBlueprint, false, false, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
         }
-        
+
         var schema = group.GetSchema<BundledAssetGroupSchema>();
-       
+
         schema.BuildPath.SetVariableByName(settings, "Remote.BuildPath");
         schema.LoadPath.SetVariableByName(settings, "Remote.LoadPath");
         schema.UseAssetBundleCache            = true;

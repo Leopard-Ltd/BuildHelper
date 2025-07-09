@@ -12,10 +12,9 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 {
     public override async Task SetUpAndBuild(IBuildInformation baseData)
     {
+        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
         await base.SetUpAndBuild(baseData);
         var data = (BuildWebGlInformation)baseData;
-
-        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
 
         if (data.data.stripCode)
         {
