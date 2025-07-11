@@ -93,7 +93,12 @@ public class BlueprintWorkFlowAndroid
         }
     }
 
-    protected virtual void SetActiveBuild() { EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android); }
+    protected virtual void SetActiveBuild()
+    {
+        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+        
+        PlayerSettings.Android.useCustomKeystore = false;
+    }
 
     protected virtual string GetAALibrary() { return $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/Android"; }
 

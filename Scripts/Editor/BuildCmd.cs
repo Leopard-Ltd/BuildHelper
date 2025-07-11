@@ -62,21 +62,22 @@ public class BuildCmd
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
             {
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
-          }
+            }
         }
         else if (File.Exists(pathIos))
         {
-           if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.iOS)
-           {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.iOS)
+            {
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
-           }
+            }
+           
         }
         else if (File.Exists(pathWebGl))
         {
-           if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
-           {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
+            {
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
-           }
+            }
         }
 
         if (isBatchMode)

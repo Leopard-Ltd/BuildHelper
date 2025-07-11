@@ -15,7 +15,7 @@ using Debug = UnityEngine.Debug;
 
 public static class CommonServices
 {
-    public static async Task<string> RunTerminalCommandAsync(string command, string workingDirectory = null,bool createNoWindow = true)
+    public static async Task<string> RunTerminalCommandAsync(string command, string workingDirectory = null, bool createNoWindow = true)
     {
         var process = new Process();
 
@@ -32,7 +32,7 @@ public static class CommonServices
 
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.RedirectStandardError  = true;
-        
+
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.CreateNoWindow  = createNoWindow;
 
@@ -148,6 +148,22 @@ public static class CommonServices
             HttpClientInitializer = credential,
             ApplicationName       = "JenkinsBuild",
         }));
+    }
+
+    public static void CheckToClearCached(IBuildInformation data)
+    {
+        if (!data.clearCached) return;
+        var bee = $"{GetProjectPath()}/Library/Bee";
+
+        if (Directory.Exists(bee))
+        {
+            Directory.Delete(bee, recursive: true);
+            LogMessage($"Deleted folder: {bee}");
+        }
+        else
+        {
+            LogMessage($"Folder does not exist: {bee}");
+        }
     }
 
     public static string GetPathInformation(string fileName)

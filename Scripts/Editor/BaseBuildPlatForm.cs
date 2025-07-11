@@ -25,8 +25,7 @@ public abstract class BaseBuildPlatForm
     public virtual async Task SetUpAndBuild(IBuildInformation data)
     {
         this.ResetBuildSettings();
-        this.CheckToClearCached(data);
-
+        CommonServices.CheckToClearCached(data);
         this.TryDisableLogo();
 
         this.BuildAddressable(data);
@@ -45,23 +44,7 @@ public abstract class BaseBuildPlatForm
             CommonServices.LogMessage(e);
         }
     }
-
-    private void CheckToClearCached(IBuildInformation data)
-    {
-        if (!data.clearCached) return;
-        var bee = $"{CommonServices.GetProjectPath()}/Library/Bee";
-
-        if (Directory.Exists(bee))
-        {
-            Directory.Delete(bee, recursive: true);
-            CommonServices.LogMessage($"Deleted folder: {bee}");
-        }
-        else
-        {
-            CommonServices.LogMessage($"Folder does not exist: {bee}");
-        }
-    }
-
+   
     private void FindAndSetGameVersion(IBuildInformation data)
     {
         var path                   = Application.dataPath;
