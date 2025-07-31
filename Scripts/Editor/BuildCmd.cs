@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -70,7 +72,6 @@ public class BuildCmd
             {
                 EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
             }
-           
         }
         else if (File.Exists(pathWebGl))
         {
@@ -90,6 +91,40 @@ public class BuildCmd
         }
     }
 
+    [MenuItem("BuildHelper/TryRynSyncData")]
+    static void TryRunSyncData() { _ = TryRunSyncDataBatchModeAsync(); }
+
+    static async Task TryRunSyncDataBatchModeAsync()
+    {
+#if DISABLE_AUTO_SYNC_DATA
+        return;
+#endif
+        var type = Type.GetType("SyncDataBatchMode, SyncGoogle.Editor");
+
+        if (type == null)
+        {
+            CommonServices.LogMessage("⚠ SyncDataBatchMode class not found.");
+
+            return;
+        }
+
+        var method = type.GetMethod("SyncGoogleDriver", BindingFlags.Public | BindingFlags.Static);
+
+        if (method == null)
+        {
+            CommonServices.LogMessage("⚠ SyncGoogleDriver method not found.");
+
+            return;
+        }
+
+        if (method.Invoke(null, null) is Task task)
+        {
+            await task;
+        }
+
+        CommonServices.LogMessage("✅ Sync data completed successfully.");
+    }
+
     [MenuItem("BuildHelper/Build Android")]
     static async void BuildAndroid()
     {
@@ -106,6 +141,7 @@ public class BuildCmd
 
         try
         {
+            await TryRunSyncDataBatchModeAsync();
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
             await buildAndroidPlatForm.SetUpAndBuild(data);
 
@@ -150,7 +186,7 @@ public class BuildCmd
     }
 
     [MenuItem("BuildHelper/Build Ios")]
-    static void BuildIos()
+    static async void BuildIos()
     {
         var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
@@ -161,9 +197,10 @@ public class BuildCmd
 
             throw new Exception("No data model found");
         }
-
+#if UNITY_IOS
         try
         {
+            await TryRunSyncDataBatchModeAsync();
             var buildIosPlatForm = new BuildIosPlatForm();
             buildIosPlatForm.SetUpAndBuild(data);
 
@@ -175,10 +212,11 @@ public class BuildCmd
 
             throw;
         }
+#endif
     }
 
     [MenuItem("BuildHelper/Build WebGl")]
-    static void BuildWebGL()
+    static async void BuildWebGL()
     {
         var data        = CommonServices.GetDataModel<BuildWebGlInformation>(CommonServices.GetPathInformation("WebGlInformation.json"));
         var isBatchMode = CommonServices.IsBatchMode();
@@ -193,6 +231,7 @@ public class BuildCmd
         try
         {
 #if UNITY_WEBGL
+            await TryRunSyncDataBatchModeAsync();   
             var buildWebGlPlatForm = new BuildWebGlPlatForm();
 
             buildWebGlPlatForm.SetUpAndBuild(data);
