@@ -17,6 +17,7 @@ public class BuildAndroidInformation : IBuildInformation
 [Serializable]
 public class AndroidInformation : BaseBuildData
 {
+    public string        keystorePath     = "";
     public string        keyName          = "user.keystore";
     public string        keyPass          = "123456";
     public string        aliasName        = "hai";
@@ -27,8 +28,8 @@ public class AndroidInformation : BaseBuildData
     public string        productName      = "";
     public string        minify           = "true";
     public string        splitBinary      = "true";
-	public string scriptingBackend="il2cpp";
-    public bool BuildAppBundle() { return this.buildAppBundle.Equals("true"); }
+	public string        scriptingBackend ="il2cpp";
+    public bool          BuildAppBundle() { return this.buildAppBundle.Equals("true"); }
 
     public bool OptimizeSizeBuild() { return this.optimizeSizeBuild.Equals("true"); }
 

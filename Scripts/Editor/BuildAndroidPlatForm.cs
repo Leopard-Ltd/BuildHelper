@@ -127,6 +127,12 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
     {
         var filePath  = $"{data.data.keyName}";
         var finalPath = $"{CommonServices.GetProjectPath()}/keys/{filePath}";
+
+        if (!string.IsNullOrEmpty(data.data.keystorePath))
+        {
+            finalPath= data.data.keystorePath;
+        }
+
         PlayerSettings.Android.useCustomKeystore = true;
         PlayerSettings.Android.keystoreName      = finalPath;
         PlayerSettings.Android.keystorePass      = data.data.keyPass;
