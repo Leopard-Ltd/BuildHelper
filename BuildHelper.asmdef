@@ -1,6 +1,6 @@
 {
     "name": "BuildHelper",
-    "rootNamespace": "",
+    "rootNamespace": "BuildHelper.Workflows",
     "references": [
         "Unity.Addressables.Editor",
         "GameFoundation.BlueprintFlow"

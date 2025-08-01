@@ -1,8 +1,11 @@
-﻿[System.Serializable]
-public class TelegramInformation
+﻿namespace BuildHelper.Workflows
 {
-    public string TelegramBotToken       = "";
-    public string TelegramChatId         = "";
-    public string TelegramThreadId       = "";
-    public bool   ShouldUploadToTelegram = false;
+    [System.Serializable]
+    public class TelegramInformation
+    {
+        public string TelegramBotToken       = "";
+        public string TelegramChatId         = "";
+        public string TelegramThreadId       = "";
+        public bool   ShouldUploadToTelegram = false;
+    }
 }

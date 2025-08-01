@@ -1,12 +1,15 @@
-using System.Collections.Generic;
-
-public class CustomValueRange
+namespace BuildHelper.Workflows
 {
-    public virtual string MajorDimension { get; set; }
+    using System.Collections.Generic;
 
-    public virtual string Range { get; set; }
+    public class CustomValueRange
+    {
+        public virtual string MajorDimension { get; set; }
 
-    public virtual IList<IList<object>> Values { get; set; }
+        public virtual string Range { get; set; }
 
-    public virtual string ETag { get; set; }
+        public virtual IList<IList<object>> Values { get; set; }
+
+        public virtual string ETag { get; set; }
+    }
 }

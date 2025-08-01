@@ -1,79 +1,80 @@
 ﻿#if UNITY_ANDROID
-
-using System;
-using System.IO;
-using Google.Apis.AndroidPublisher.v3;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Upload;
-using UnityEditor;
-
-public static class UploadAABToGooglePlay
+namespace BuildHelper.Workflows
 {
-    public static void UploadAAb()
+    using System;
+    using System.IO;
+    using Google.Apis.AndroidPublisher.v3;
+    using Google.Apis.Auth.OAuth2;
+    using Google.Apis.Services;
+    using Google.Apis.Upload;
+    using UnityEditor;
+
+    public static class UploadAABToGooglePlay
     {
-        var data = CommonServices.GetDataModel<BuildAndroidInformation>(CommonServices.GetPathInformation("AndroidInformation.json"));
-
-        if (!data.data.BuildAppBundle())
-            return;
-
-        var packageName = PlayerSettings.applicationIdentifier;
-
-        var outputFileName = CommonServices.FindFileInFolder($"{CommonServices.GetBuildPath()}/Client/Android/",  ".aab");
-        var aabFilePath    = CommonServices.GetBuildPath(outputFileName);
-
-        var serviceAccountJson = GetServicesAccountUpload();
-
-        try
+        public static void UploadAAb()
         {
-            GoogleCredential credential;
+            var data = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
 
-            using (var stream = new FileStream(serviceAccountJson, FileMode.Open, FileAccess.Read))
+            if (!data.data.BuildAppBundle())
+                return;
+
+            var packageName = PlayerSettings.applicationIdentifier;
+
+            var outputFileName = CommonServicesHelper.FindFileInFolder($"{CommonServicesHelper.GetBuildPath()}/Client/Android/", ".aab");
+            var aabFilePath    = CommonServicesHelper.GetBuildPath(outputFileName);
+
+            var serviceAccountJson = GetServicesAccountUpload();
+
+            try
             {
-                credential = GoogleCredential.FromStream(stream)
-                    .CreateScoped(AndroidPublisherService.Scope.Androidpublisher);
-            }
+                GoogleCredential credential;
 
-            var service = new AndroidPublisherService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName       = "Google Play Upload"
-            });
-
-            var editRequest = service.Edits.Insert(new Google.Apis.AndroidPublisher.v3.Data.AppEdit(), packageName);
-            var edit        = editRequest.Execute();
-            var editId      = edit.Id;
-            CommonServices.LogMessage("Edit ID: " + editId);
-
-            using (var fileStream = new FileStream(aabFilePath, FileMode.Open))
-            {
-                var uploadRequest = service.Edits.Bundles.Upload(packageName, editId, fileStream, "application/octet-stream");
-                var progress      = uploadRequest.Upload();
-
-                if (progress.Status == UploadStatus.Completed)
+                using (var stream = new FileStream(serviceAccountJson, FileMode.Open, FileAccess.Read))
                 {
-                    CommonServices.LogMessage("Upload AAB thành công! Bạn có thể kiểm tra trong Bundle Explorer.");
+                    credential = GoogleCredential.FromStream(stream)
+                        .CreateScoped(AndroidPublisherService.Scope.Androidpublisher);
                 }
-                else
-                {
-                    CommonServices.LogMessage("Lỗi khi upload: " + progress.Exception);
-                }
-            }
 
-            CommonServices.LogMessage("File AAB đã được upload vào 'Bundle Explorer' nhưng KHÔNG release.");
+                var service = new AndroidPublisherService(new BaseClientService.Initializer
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName       = "Google Play Upload"
+                });
+
+                var editRequest = service.Edits.Insert(new Google.Apis.AndroidPublisher.v3.Data.AppEdit(), packageName);
+                var edit        = editRequest.Execute();
+                var editId      = edit.Id;
+                CommonServicesHelper.LogMessage("Edit ID: " + editId);
+
+                using (var fileStream = new FileStream(aabFilePath, FileMode.Open))
+                {
+                    var uploadRequest = service.Edits.Bundles.Upload(packageName, editId, fileStream, "application/octet-stream");
+                    var progress      = uploadRequest.Upload();
+
+                    if (progress.Status == UploadStatus.Completed)
+                    {
+                        CommonServicesHelper.LogMessage("Upload AAB thành công! Bạn có thể kiểm tra trong Bundle Explorer.");
+                    }
+                    else
+                    {
+                        CommonServicesHelper.LogMessage("Lỗi khi upload: " + progress.Exception);
+                    }
+                }
+
+                CommonServicesHelper.LogMessage("File AAB đã được upload vào 'Bundle Explorer' nhưng KHÔNG release.");
+            }
+            catch (Exception ex)
+            {
+                CommonServicesHelper.LogMessage("Lỗi: " + ex.Message);
+            }
         }
-        catch (Exception ex)
+
+        private static string GetServicesAccountUpload()
         {
-            CommonServices.LogMessage("Lỗi: " + ex.Message);
+            var filePath = CommonServicesHelper.GetPathInformation("googleUploadServicesAccount.json");
+
+            return filePath;
         }
-    }
-
-    private static string GetServicesAccountUpload()
-    {
-        var filePath = CommonServices.GetPathInformation("googleUploadServicesAccount.json");
-
-        return filePath;
     }
 }
-
 #endif

@@ -1,42 +1,45 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-
-public static class UploadIOSBuild
+﻿
+namespace BuildHelper.Workflows
 {
-    public static void UploadTestFlight()
+    using System;
+    using System.Diagnostics;
+    using System.IO;
+
+    public static class UploadIOSBuild
     {
-        MoveArchive();
+        public static void UploadTestFlight()
+        {
+            MoveArchive();
 
-        return;
+            return;
 
-        var buildIosInformation = CommonServices.GetDataModel<BuildIosInformation>(
-            CommonServices.GetPathInformation("IosInformation.json"));
+            var buildIosInformation = CommonServicesHelper.GetDataModel<BuildIosInformation>(
+                CommonServicesHelper.GetPathInformation("IosInformation.json"));
 
-        var buildPath = $"{CommonServices.GetRootPath()}";
+            var buildPath = $"{CommonServicesHelper.GetRootPath()}";
 
-        var projectPath = CommonServices.GetProjectPath();
-        var ipaFolder   = $"{buildPath}Build/Client/ios/{buildIosInformation.data.outputFileName}/{buildIosInformation.data.outputFileName}.ipa/";
-        var ipaFilePath = CommonServices.FindFileInFolder(ipaFolder);
-        UploadToAppStore(buildIosInformation.data.fastLanePath, projectPath, ipaFilePath, buildIosInformation);
-    }
+            var projectPath = CommonServicesHelper.GetProjectPath();
+            var ipaFolder   = $"{buildPath}Build/Client/ios/{buildIosInformation.data.outputFileName}/{buildIosInformation.data.outputFileName}.ipa/";
+            var ipaFilePath = CommonServicesHelper.FindFileInFolder(ipaFolder);
+            UploadToAppStore(buildIosInformation.data.fastLanePath, projectPath, ipaFilePath, buildIosInformation);
+        }
 
-    static void UploadToAppStore(string fastLanePath, string projectPath, string ipaPath, BuildIosInformation data)
-    {
-        var fastlaneDir = Path.Combine(projectPath, "fastlane");
+        static void UploadToAppStore(string fastLanePath, string projectPath, string ipaPath, BuildIosInformation data)
+        {
+            var fastlaneDir = Path.Combine(projectPath, "fastlane");
 
-        if (Directory.Exists(fastlaneDir))
-            Directory.Delete(fastlaneDir, true);
+            if (Directory.Exists(fastlaneDir))
+                Directory.Delete(fastlaneDir, true);
 
-        Directory.CreateDirectory(fastlaneDir);
+            Directory.CreateDirectory(fastlaneDir);
 
-        // Ghi Appfile
-        File.WriteAllText(Path.Combine(fastlaneDir, "Appfile"), $@"
+            // Ghi Appfile
+            File.WriteAllText(Path.Combine(fastlaneDir, "Appfile"), $@"
         app_identifier('{data.data.bundleIdentifier}')
         ");
 
-        // Ghi Fastfile
-        File.WriteAllText(Path.Combine(fastlaneDir, "Fastfile"), $@"
+            // Ghi Fastfile
+            File.WriteAllText(Path.Combine(fastlaneDir, "Fastfile"), $@"
         default_platform(:ios)
 
         platform :ios do
@@ -51,131 +54,132 @@ public static class UploadIOSBuild
         end
         ");
 
-        RunCommand(fastLanePath, "upload", projectPath, data.data.fastLaneSession, data.data.accountAppleId);
-    }
-
-    private static void RunCommand(string command, string args, string workingDir, string fastLaneSession, string appleId)
-    {
-        var process = new Process();
-        process.StartInfo.FileName               = command;
-        process.StartInfo.Arguments              = args;
-        process.StartInfo.WorkingDirectory       = workingDir;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError  = true;
-        process.StartInfo.UseShellExecute        = false;
-        process.StartInfo.CreateNoWindow         = true;
-
-        process.StartInfo.EnvironmentVariables["FASTLANE_SESSION"] = fastLaneSession;
-        process.StartInfo.EnvironmentVariables["FASTLANE_USER"]    = appleId;
-        process.StartInfo.EnvironmentVariables["LANG"]             = "en_US.UTF-8";
-        process.StartInfo.EnvironmentVariables["LC_ALL"]           = "en_US.UTF-8";
-
-        process.OutputDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-                CommonServices.LogMessage("[OUT] " + e.Data);
-        };
-
-        process.ErrorDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-                CommonServices.LogMessage("[ERR] " + e.Data);
-        };
-
-        try
-        {
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-        }
-        catch (Exception ex)
-        {
-            CommonServices.LogMessage($"Lỗi khi chạy fastlane: {ex.Message}");
-        }
-    }
-
-    static void MoveArchive()
-    {
-        var data = CommonServices.GetDataModel<BuildIosInformation>(
-            CommonServices.GetPathInformation("IosInformation.json"));
-
-        var userHome          = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var archivePath       = Path.Combine(userHome, "Library", "Developer", "Xcode", "Archives");
-        var currentDateTime   = DateTime.Now.ToString("yyyy-MM-dd");
-        var destinationFolder = Path.Combine(archivePath, currentDateTime);
-
-        var sourceFolder = $"{CommonServices.GetBuildPath()}Client/ios/{data.data.outputFileName}/{data.data.outputFileName}.xcarchive";
-
-        if (!Directory.Exists(sourceFolder))
-        {
-            CommonServices.LogMessage("❌ Lỗi: Thư mục nguồn không tồn tại - " + sourceFolder);
-
-            return;
+            RunCommand(fastLanePath, "upload", projectPath, data.data.fastLaneSession, data.data.accountAppleId);
         }
 
-        if (!Directory.Exists(destinationFolder))
+        private static void RunCommand(string command, string args, string workingDir, string fastLaneSession, string appleId)
         {
+            var process = new Process();
+            process.StartInfo.FileName               = command;
+            process.StartInfo.Arguments              = args;
+            process.StartInfo.WorkingDirectory       = workingDir;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError  = true;
+            process.StartInfo.UseShellExecute        = false;
+            process.StartInfo.CreateNoWindow         = true;
+
+            process.StartInfo.EnvironmentVariables["FASTLANE_SESSION"] = fastLaneSession;
+            process.StartInfo.EnvironmentVariables["FASTLANE_USER"]    = appleId;
+            process.StartInfo.EnvironmentVariables["LANG"]             = "en_US.UTF-8";
+            process.StartInfo.EnvironmentVariables["LC_ALL"]           = "en_US.UTF-8";
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                    CommonServicesHelper.LogMessage("[OUT] " + e.Data);
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                    CommonServicesHelper.LogMessage("[ERR] " + e.Data);
+            };
+
             try
             {
-                Directory.CreateDirectory(destinationFolder);
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                process.WaitForExit();
             }
             catch (Exception ex)
             {
-                CommonServices.LogMessage("❌ Lỗi tạo thư mục: " + ex.Message);
-
-                return;
+                CommonServicesHelper.LogMessage($"Lỗi khi chạy fastlane: {ex.Message}");
             }
         }
 
-        var timestamp       = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var newArchiveName  = $"{data.data.outputFileName}_{timestamp}.xcarchive";
-        var destinationPath = Path.Combine(destinationFolder, newArchiveName);
+        static void MoveArchive()
+        {
+            var data = CommonServicesHelper.GetDataModel<BuildIosInformation>(
+                CommonServicesHelper.GetPathInformation("IosInformation.json"));
 
-        try
-        {
-            CopyDirectory(sourceFolder, destinationPath);
-            CommonServices.LogMessage($"✅ Đã sao chép thành công: {destinationPath}");
-        }
-        catch (Exception ex)
-        {
-            CommonServices.LogMessage("❌ Lỗi khi sao chép thư mục: " + ex.Message);
+            var userHome          = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var archivePath       = Path.Combine(userHome, "Library", "Developer", "Xcode", "Archives");
+            var currentDateTime   = DateTime.Now.ToString("yyyy-MM-dd");
+            var destinationFolder = Path.Combine(archivePath, currentDateTime);
 
-            return;
+            var sourceFolder = $"{CommonServicesHelper.GetBuildPath()}Client/ios/{data.data.outputFileName}/{data.data.outputFileName}.xcarchive";
+
+            if (!Directory.Exists(sourceFolder))
+            {
+                CommonServicesHelper.LogMessage("❌ Lỗi: Thư mục nguồn không tồn tại - " + sourceFolder);
+
+                return;
+            }
+
+            if (!Directory.Exists(destinationFolder))
+            {
+                try
+                {
+                    Directory.CreateDirectory(destinationFolder);
+                }
+                catch (Exception ex)
+                {
+                    CommonServicesHelper.LogMessage("❌ Lỗi tạo thư mục: " + ex.Message);
+
+                    return;
+                }
+            }
+
+            var timestamp       = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var newArchiveName  = $"{data.data.outputFileName}_{timestamp}.xcarchive";
+            var destinationPath = Path.Combine(destinationFolder, newArchiveName);
+
+            try
+            {
+                CopyDirectory(sourceFolder, destinationPath);
+                CommonServicesHelper.LogMessage($"✅ Đã sao chép thành công: {destinationPath}");
+            }
+            catch (Exception ex)
+            {
+                CommonServicesHelper.LogMessage("❌ Lỗi khi sao chép thư mục: " + ex.Message);
+
+                return;
+            }
+
+            try
+            {
+                // Process.Start(new ProcessStartInfo
+                // {
+                //     FileName        = "open",
+                //     Arguments       = "\"" + archivePath + "\"",
+                //     UseShellExecute = true
+                // });
+            }
+            catch (Exception ex)
+            {
+                CommonServicesHelper.LogMessage("❌ Lỗi khi mở thư mục: " + ex.Message);
+            }
         }
 
-        try
+        static void CopyDirectory(string sourceDir, string destinationDir)
         {
-            // Process.Start(new ProcessStartInfo
-            // {
-            //     FileName        = "open",
-            //     Arguments       = "\"" + archivePath + "\"",
-            //     UseShellExecute = true
-            // });
-        }
-        catch (Exception ex)
-        {
-            CommonServices.LogMessage("❌ Lỗi khi mở thư mục: " + ex.Message);
-        }
-    }
+            if (!Directory.Exists(destinationDir))
+            {
+                Directory.CreateDirectory(destinationDir);
+            }
 
-    static void CopyDirectory(string sourceDir, string destinationDir)
-    {
-        if (!Directory.Exists(destinationDir))
-        {
-            Directory.CreateDirectory(destinationDir);
-        }
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
+                File.Copy(file, destFile, true);
+            }
 
-        foreach (string file in Directory.GetFiles(sourceDir))
-        {
-            string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
-            File.Copy(file, destFile, true);
-        }
-
-        foreach (string dir in Directory.GetDirectories(sourceDir))
-        {
-            string destDir = Path.Combine(destinationDir, Path.GetFileName(dir));
-            CopyDirectory(dir, destDir);
+            foreach (string dir in Directory.GetDirectories(sourceDir))
+            {
+                string destDir = Path.Combine(destinationDir, Path.GetFileName(dir));
+                CopyDirectory(dir, destDir);
+            }
         }
     }
 }

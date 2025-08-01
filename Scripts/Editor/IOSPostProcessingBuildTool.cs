@@ -1,5 +1,6 @@
 ﻿#if UNITY_IOS
-
+namespace BuildHelper.Workflows
+{
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -60,7 +61,7 @@ public class IOSPostProcessingBuildTool
 
     private static void SetupSandBox(string pathToBuiltProject)
     {
-        var data             = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
+        var data = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
 
         if (!data.data.isSandBox)
         {
@@ -91,7 +92,7 @@ public class IOSPostProcessingBuildTool
         plist.WriteToFile(entitlementsPath);
 
         var projPath = PBXProject.GetPBXProjectPath(pathToBuiltProject);
-        var    proj     = new PBXProject();
+        var    proj = new PBXProject();
         proj.ReadFromFile(projPath);
 
 #if UNITY_2019_3_OR_NEWER
@@ -109,15 +110,15 @@ public class IOSPostProcessingBuildTool
 
     private static void SetProjectConfig(string pathToBuiltProject)
     {
-        var data        = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
+        var data = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
         var projectPath = pathToBuiltProject + "/Unity-iPhone.xcodeproj/project.pbxproj";
-        var pbxProject  = new PBXProject();
+        var pbxProject = new PBXProject();
         pbxProject.ReadFromString(File.ReadAllText(projectPath));
-        var mainTargetGuid           = pbxProject.GetUnityMainTargetGuid();
-        var testTargetGuid           = pbxProject.TargetGuidByName(PBXProject.GetUnityTestTargetName());
+        var mainTargetGuid = pbxProject.GetUnityMainTargetGuid();
+        var testTargetGuid = pbxProject.TargetGuidByName(PBXProject.GetUnityTestTargetName());
         var unityFrameworkTargetGuid = pbxProject.GetUnityFrameworkTargetGuid();
-        var projectGuid              = pbxProject.ProjectGuid();
-        var pbxProjectPath           = PBXProject.GetPBXProjectPath(pathToBuiltProject);
+        var projectGuid = pbxProject.ProjectGuid();
+        var pbxProjectPath = PBXProject.GetPBXProjectPath(pathToBuiltProject);
 
         SetAutomatic(data, pbxProject, mainTargetGuid);
 
@@ -144,7 +145,7 @@ public class IOSPostProcessingBuildTool
 
     private static void SetTeamManualy(BuildIosInformation data, PBXProject pbxProject, string mainTargetGuid)
     {
-        var teamID      = data.data.signingTeamId; // Team ID
+        var teamID = data.data.signingTeamId; // Team ID
         var profileName = "Nothing"; // Tên của provisioning profile
         var profileUUID = "30154144-e6b3-4521-8c60-d3a5d5a0c36e"; // UUID của provisioning profile (từ Apple Developer Portal)
 
@@ -169,7 +170,7 @@ public class IOSPostProcessingBuildTool
         var data = CommonServices.GetDataModel<BuildIosInformation>(CommonServices.GetPathInformation("IosInformation.json"));
 
         var plistPath = pathToBuiltProject + "/Info.plist";
-        var plist     = new PlistDocument();
+        var plist = new PlistDocument();
         plist.ReadFromString(File.ReadAllText(plistPath));
         var rootDict = plist.root;
         // Disable Firebase screen view tracking
@@ -217,7 +218,7 @@ public class IOSPostProcessingBuildTool
 #endif
 
         // URL Scheme
-        var urlTypeArray   = rootDict.CreateArray("CFBundleURLTypes");
+        var urlTypeArray = rootDict.CreateArray("CFBundleURLTypes");
         var urlTypeSubDict = urlTypeArray.AddDict();
         var urlSchemeArray = urlTypeSubDict.CreateArray("CFBundleURLSchemes");
         urlTypeSubDict.SetString("CFBundleURLName", PlayerSettings.applicationIdentifier);
@@ -269,5 +270,5 @@ public class IOSPostProcessingBuildTool
 
     #endregion
 }
-
+}
 #endif

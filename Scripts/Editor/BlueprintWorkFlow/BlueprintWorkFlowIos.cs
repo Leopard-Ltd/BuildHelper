@@ -1,16 +1,14 @@
 #if ADDRESSABLE && BLUEPRINT_WORKFLOW
-using UnityEditor;
 
-public class BlueprintWorkFlowIos:BlueprintWorkFlowAndroid
+namespace BuildHelper.Workflows
 {
-    protected override void SetActiveBuild()
-    {
-        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
-    }
+    using UnityEditor;
 
-    protected override string GetAALibrary()
+    public class BlueprintWorkFlowIos : BlueprintWorkFlowAndroid
     {
-        return  $"{CommonServices.GetProjectPath()}/Library/com.unity.addressables/aa/iOS";
+        protected override void SetActiveBuild() { EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS); }
+
+        protected override string GetAALibrary() { return $"{CommonServicesHelper.GetProjectPath()}/Library/com.unity.addressables/aa/iOS"; }
     }
 }
 #endif
