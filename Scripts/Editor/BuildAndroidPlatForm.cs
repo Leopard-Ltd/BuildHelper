@@ -70,7 +70,9 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
             targetGroup      = BuildTargetGroup.Android
         };
 
-        PlayerSettings.SetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(buildPlayerOptions.targetGroup),  data.data.scriptingBackend.Equals("il2cpp") ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x);
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.FromBuildTargetGroup(buildPlayerOptions.targetGroup),
+            data.data.scriptingBackend.Equals("il2cpp") ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x);
+
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
 
 #if UNITY_6000_0_OR_NEWER
@@ -130,7 +132,9 @@ public class BuildAndroidPlatForm : BaseBuildPlatForm
 
         if (!string.IsNullOrEmpty(data.data.keystorePath))
         {
-            finalPath= data.data.keystorePath;
+            var tmp = data.data.keystorePath;
+            tmp       = tmp.EndsWith("/") ? tmp : tmp + "/";
+            finalPath = $"{tmp}{data.data.keyName}";
         }
 
         PlayerSettings.Android.useCustomKeystore = true;

@@ -1,0 +1,40 @@
+{
+  "data": {
+    "keystorePath": "",
+    "keyName": "user.keystore",
+    "keyPass": "123456",
+    "aliasName": "hai",
+    "aliasPass": "123456",
+    "buildAppBundle": "false",
+    "customVersion": {
+      "isCustomVersion": "true",
+      "version": "develop.0",
+      "autoVersion": "true"
+    },
+    "bundleIdentifier": "",
+    "minify": "true",
+    "splitBinary": "true",
+    "scriptingBackend": "il2cpp",
+    "scriptDefinition": "",
+    "outputFileName": "projectTemplate",
+    "buildNumber": "1",
+    "optimizeSizeBuild": "true",
+    "isBuildDevelopment": "false",
+    "buildEnvironment": "Development",
+    "useServicesAccount": "true",
+    "clearCachedCredentials": false,
+    "clearCached": false,
+    "blueprintPath": "BlueprintData",
+    "productName": "",
+    "telegramInfos": [
+      {
+        "TelegramBotToken": "",
+        "TelegramChatId": "",
+        "TelegramThreadId": "",
+        "ShouldUploadToTelegram": false
+      }
+    ],
+    "telegramWorker": "telegram-support.hoangthanhhai1308.workers.dev",
+    "stripCode": true
+  }
+}

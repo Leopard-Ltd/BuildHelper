@@ -39,16 +39,45 @@ public class BuildCmd
     }
 
     [MenuItem("BuildHelper/Build Android from Editor")]
-    static void BuildAndroidOnEditor()
+    static async void BuildAndroidOnEditor()
     {
 #if UNITY_ANDROID
+        var jsonfile = $"{CommonServices.GetProjectPath()}/Packages/BuildHelper/SampleConfig/AndroidInformation.json";
+        var data     = CommonServices.GetDataModel<BuildAndroidInformation>(jsonfile);
+        data.data.scriptDefinition = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.Android);
         var buildAndroidPlatForm = new BuildAndroidPlatForm();
-        var data                 = new BuildAndroidInformation();
-        var scriptDefineSymbol   = PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.Android);
-        data.data.scriptDefinition = scriptDefineSymbol;
-        data.data.outputFileName   = "output-1.0.0-1";
+        await buildAndroidPlatForm.SetUpAndBuild(data);
 
-        buildAndroidPlatForm.SetUpAndBuild(data);
+        OnAfterExecute(Application.isBatchMode, () =>
+        {
+            var folderPath = Path.GetFullPath($"../Build/Client/Android/");
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Windows
+                Process.Start("explorer.exe", folderPath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // macOS
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName        = "open",
+                    Arguments       = folderPath,
+                    UseShellExecute = true
+                });
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                // Linux
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName        = "xdg-open",
+                    Arguments       = folderPath,
+                    UseShellExecute = true
+                });
+            }
+        });
 #endif
     }
 
