@@ -9,6 +9,7 @@ namespace BuildHelper.Workflows
 
     public class ExportDllHelper
     {
+        [MenuItem("BuildScripts/Export DLL", priority = 100)]
         public static async void ExportDll()
         {
             var sourLibs     = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/Libs/";

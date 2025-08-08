@@ -5,9 +5,6 @@ public static class BuildMenu
 {
     static void SwitchPlatform() { BuildCmd.SwitchPlatform(); }
 
-    [MenuItem("BuildScripts/Export DLL", priority = 100)]
-    static void ExportDll() { ExportDllHelper.ExportDll(); }
-
     [MenuItem("BuildScripts/SetBlueprintPath")]
     static void SetBlueprintDataPath() { BuildCmd.SetBlueprintDataPath(); }
 
