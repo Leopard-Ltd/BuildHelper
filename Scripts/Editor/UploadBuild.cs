@@ -230,11 +230,12 @@
 
             try
             {
-                var folderToDelete = FindFolder(service, parentFolder, folderName);
+                var folderToDelete = await FindFolder(service, parentFolder, folderName);
 
                 if (folderToDelete != null)
                 {
                     CommonServicesHelper.LogMessage($"Folder already exists: {folderToDelete.Id}");
+
                     return folderToDelete.Id;
                 }
 
@@ -249,23 +250,25 @@
                 request.SupportsAllDrives = true;
                 request.Fields            = "id";
 
-                var file = await request.ExecuteAsync();
+                var file = await request.ExecuteAsync().ConfigureAwait(false);
 
                 CommonServicesHelper.LogMessage("Folder created ID: " + file.Id);
+
                 return file.Id;
             }
             catch (Google.GoogleApiException gex)
             {
                 CommonServicesHelper.LogMessage($"Google API Error: {gex.Error?.Message} ({gex.Error?.Code})");
+
                 throw;
             }
             catch (Exception ex)
             {
                 CommonServicesHelper.LogMessage($"Unexpected error: {ex.Message}");
+
                 throw;
             }
         }
-
 
         private static async void ShareWriter(DriveService service, string folderId, string userEmail)
         {
@@ -283,20 +286,18 @@
             CommonServicesHelper.LogMessage($"Ownership transferred to {userEmail}.");
         }
 
-        static File FindFolder(DriveService service, string parentFolder, string folderName)
+        static async Task<File> FindFolder(DriveService service, string parentFolder, string folderName)
         {
-            // Define parameters for the Files.List request
             var listRequest = service.Files.List();
             listRequest.Q                         = $"mimeType = 'application/vnd.google-apps.folder' and name = '{folderName}' and '{parentFolder}' in parents and trashed = false";
             listRequest.PageSize                  = 100;
             listRequest.Fields                    = "nextPageToken, files(id, name)";
             listRequest.SupportsAllDrives         = true;
             listRequest.IncludeItemsFromAllDrives = true;
-            // Execute the request and get the list of files
-            IList<File> files = listRequest.Execute().Files;
-
-            // Check if there's exactly one match
-            return files.FirstOrDefault();
+            CommonServicesHelper.LogMessage("Before ExecuteAsync: " + listRequest.Q);
+            var response = await listRequest.ExecuteAsync();
+            CommonServicesHelper.LogMessage("After ExecuteAsync, got " + response.Files.Count + " files");
+            return response.Files.FirstOrDefault();
         }
 
         static void DeleteFolder(DriveService service, string folderId)
@@ -340,10 +341,10 @@
                 }
             }
         }
-        
+
         private static int GetOptimalChunkSize(long fileSize)
         {
-            const int minChunk = ResumableUpload.MinimumChunkSize; 
+            const int minChunk = ResumableUpload.MinimumChunkSize;
 
             if (fileSize <= 10 * 1024 * 1024) // < 10MB
                 return minChunk * 16; // 4MB
