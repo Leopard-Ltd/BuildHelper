@@ -154,7 +154,6 @@
             }
 
             var service = await CommonServicesHelper.GetDriveServices(buildAndroidInformation.data.IsUseServicesAccount());
-
             //read from file
             var folderId = System.IO.File.ReadAllText($"{CommonServicesHelper.GetPathInformation("uploadInfo.txt")}");
             //BuildEnvironment
@@ -204,7 +203,7 @@
 
         static async Task<string> CreateFolder(string folderName, string parentFolder, DriveService service)
         {
-            var folderToDelete = FindFolder(service, parentFolder, folderName);
+            var folderToDelete =await FindFolder(service, parentFolder, folderName);
 
             if (folderToDelete != null)
             {
@@ -222,13 +221,13 @@
             request.SupportsAllDrives = true;
             request.Fields            = "id";
             var file = await request.ExecuteAsync();
-            Console.WriteLine("Folder ID: " + file.Id);
+            CommonServicesHelper.LogMessage("Folder ID: " + file.Id);
             // await ShareWriter(service, file.Id, OwnerPermission.Keys.First());
 
             return file.Id;
         }
 
-        private static async void ShareWriter(DriveService service, string folderId, string userEmail)
+        private static async Task ShareWriter(DriveService service, string folderId, string userEmail)
         {
             var permission = new Permission
             {
@@ -241,10 +240,10 @@
             request.SupportsAllDrives = true;
 
             await request.ExecuteAsync();
-            Console.WriteLine($"Ownership transferred to {userEmail}.");
+            CommonServicesHelper.LogMessage($"Ownership transferred to {userEmail}.");
         }
 
-        static File FindFolder(DriveService service, string parentFolder, string folderName)
+        static async Task<File> FindFolder(DriveService service, string parentFolder, string folderName)
         {
             // Define parameters for the Files.List request
             var listRequest = service.Files.List();
@@ -254,7 +253,7 @@
             listRequest.SupportsAllDrives         = true;
             listRequest.IncludeItemsFromAllDrives = true;
             // Execute the request and get the list of files
-            IList<File> files = listRequest.Execute().Files;
+            var files = (await listRequest.ExecuteAsync()).Files;
 
             // Check if there's exactly one match
             return files.FirstOrDefault();
@@ -287,12 +286,12 @@
             switch (progress.Status)
             {
                 case UploadStatus.Failed:
-                    Console.WriteLine($"Upload failed {progress.Exception}");
+                    CommonServicesHelper.LogMessage($"Upload failed {progress.Exception}");
 
                     throw progress.Exception;
                 case UploadStatus.Completed:
                     var fileId = request.ResponseBody.Id;
-                    Console.WriteLine($"File uploaded successfully. File ID: {fileId}");
+                    CommonServicesHelper.LogMessage($"File uploaded successfully. File ID: {fileId}");
 
                     break;
             }

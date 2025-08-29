@@ -1,9 +1,26 @@
+using System;
+using System.IO;
 using BuildHelper.Workflows;
 using UnityEditor;
+using UnityEngine;
 
 public static class BuildMenu
 {
-    static void SwitchPlatform() { BuildCmd.SwitchPlatform(); }
+    [MenuItem("BuildScripts/Export Data To UpLoad")]
+    static void ExportDataPath()
+    {
+        var path             = "";
+        path += $"{Application.dataPath}\n";
+        path += $"{Application.persistentDataPath}\n";
+        var uploadHelper = $"{Application.dataPath.Replace("Assets", "Packages/BuildHelper/UploadHelper")}";
+        File.WriteAllTextAsync($"{uploadHelper}/DataPath.txt", path);
+    }
+
+    static void SwitchPlatform()
+    {
+        ExportDataPath();
+        BuildCmd.SwitchPlatform();
+    }
 
     [MenuItem("BuildScripts/SetBlueprintPath")]
     static void SetBlueprintDataPath() { BuildCmd.SetBlueprintDataPath(); }

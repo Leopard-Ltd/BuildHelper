@@ -18,7 +18,7 @@ namespace BuildHelper.Workflows
             var assemblyName = "BuildHelper";
             var assemblies   = CompilationPipeline.GetAssemblies(AssembliesType.Editor);
 
-            var buildMenuFile = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/Scripts/Editor/BuildMenu.cs";
+            var buildMenuFile = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/Editor/BuildMenu.cs";
 
             if (File.Exists(buildMenuFile))
             {
