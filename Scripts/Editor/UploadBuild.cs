@@ -49,15 +49,17 @@
             }
         }
 
-        public static async void UploadGoogleDriveWebGlPlatForm()
+        public static async Task UploadGoogleDriveWebGlPlatForm()
         {
+            var isBatchMode = CommonServicesHelper.IsBatchMode();
+
             try
             {
-                var isBatchMode = CommonServicesHelper.IsBatchMode();
-                var webglModel  = CommonServicesHelper.GetDataModel<BuildWebGlInformation>(CommonServicesHelper.GetPathInformation("WebGlInformation.json"));
+                var webglModel = CommonServicesHelper.GetDataModel<BuildWebGlInformation>(CommonServicesHelper.GetPathInformation("WebGlInformation.json"));
                 CommonServicesHelper.CheckToClearToken(webglModel.data);
                 var zipFilePath = $"{CommonServicesHelper.GetBuildPath()}Client/webgl/{webglModel.data.outputFileName}.zip";
                 var service     = await CommonServicesHelper.GetDriveServices(webglModel.data.IsUseServicesAccount());
+                service.HttpClient.Timeout = TimeSpan.FromHours(1);
                 //read from file
                 var folderId = System.IO.File.ReadAllText($"{CommonServicesHelper.GetPathInformation("uploadInfo.txt")}");
 
@@ -80,11 +82,18 @@
             catch (Exception e)
             {
                 //ignore
-                throw new Exception(e.Message);
+                CommonServicesHelper.LogMessage($"Upload Error: {e.Message}");
+            }
+            finally
+            {
+                if (isBatchMode)
+                {
+                    EditorApplication.Exit(0);
+                }
             }
         }
 
-        public static async void UploadGoogleDriveIosPlatform()
+        public static async Task UploadGoogleDriveIosPlatform()
         {
             var isBatchMode = CommonServicesHelper.IsBatchMode();
 
@@ -92,6 +101,7 @@
             {
                 var buildIosInformation = CommonServicesHelper.GetDataModel<BuildIosInformation>(CommonServicesHelper.GetPathInformation("IosInformation.json"));
                 var service             = await CommonServicesHelper.GetDriveServices(buildIosInformation.data.IsUseServicesAccount());
+                service.HttpClient.Timeout = TimeSpan.FromHours(1);
                 CommonServicesHelper.CheckToClearToken(buildIosInformation.data);
                 var outputFileName = buildIosInformation.data.outputFileName;
                 //read from file
@@ -130,103 +140,132 @@
             }
         }
 
-        public static async void UploadGoogleDriveAndroidPlatform()
+        public static async Task UploadGoogleDriveAndroidPlatform()
         {
-            var isBatchMode             = CommonServicesHelper.IsBatchMode();
-            var buildAndroidInformation = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
-            CommonServicesHelper.CheckToClearToken(buildAndroidInformation.data);
-            var finalBuildVersion = CommonServicesHelper.GetFinalAndroidBuildVersion();
-            var tmp               = buildAndroidInformation.data.outputFileName.Split("-");
-            var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
-            var internalFilePath  = $"{CommonServicesHelper.GetBuildPath()}Client/Android/{outputFileName}";
-            var apkFilePath       = $"{internalFilePath}.apk";
-            var aabFilePath       = $"{internalFilePath}.aab";
-            var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.data.buildNumber}-IL2CPP.symbols.zip";
+            CommonServicesHelper.LogMessage("Start Upload Android Google Drive");
+            var isBatchMode = CommonServicesHelper.IsBatchMode();
 
-            if (!System.IO.File.Exists(apkFilePath))
+            try
             {
-                throw new Exception("Apk File not found");
+                var buildAndroidInformation = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
+                CommonServicesHelper.CheckToClearToken(buildAndroidInformation.data);
+                var finalBuildVersion = CommonServicesHelper.GetFinalAndroidBuildVersion();
+                var tmp               = buildAndroidInformation.data.outputFileName.Split("-");
+                var outputFileName    = $"{tmp[0]}-{finalBuildVersion}-{tmp[2]}";
+                var internalFilePath  = $"{CommonServicesHelper.GetBuildPath()}Client/Android/{outputFileName}";
+                var apkFilePath       = $"{internalFilePath}.apk";
+                var aabFilePath       = $"{internalFilePath}.aab";
+                var zipFilePath       = $"{internalFilePath}-{PlayerSettings.bundleVersion}-v{buildAndroidInformation.data.buildNumber}-IL2CPP.symbols.zip";
+
+                if (!System.IO.File.Exists(apkFilePath))
+                {
+                    throw new Exception("Apk File not found");
+                }
+
+                if (!System.IO.File.Exists(aabFilePath) && buildAndroidInformation.data.BuildAppBundle())
+                {
+                    throw new Exception("Aab File not found");
+                }
+
+                var service = await CommonServicesHelper.GetDriveServices(buildAndroidInformation.data.IsUseServicesAccount());
+                CommonServicesHelper.LogMessage("Get Service Done");
+                service.HttpClient.Timeout = TimeSpan.FromHours(1);
+                //read from file
+                var folderId = System.IO.File.ReadAllText($"{CommonServicesHelper.GetPathInformation("uploadInfo.txt")}");
+                //BuildEnvironment
+                var environmentFolder = await CreateFolder(buildAndroidInformation.data.buildEnvironment, folderId, service);
+
+                //create platform folder
+                var platFormFolder = await CreateFolder("Android", environmentFolder, service);
+
+                //Create VersionFolder
+                var versionFolder = await CreateFolder($"{outputFileName}", platFormFolder, service);
+                CommonServicesHelper.LogMessage("Start upload File");
+                listTask = new List<Task>();
+                var urlApk  = "";
+                var urlAab  = "";
+                var zipFile = "";
+                listTask.Add(UploadFileInternal(apkFilePath, versionFolder, service, ApkFile, (x) => { urlApk = x; }));
+
+                if (buildAndroidInformation.data.BuildAppBundle())
+                {
+                    listTask.Add(UploadFileInternal(aabFilePath, versionFolder, service, ApkFile, (x) => { urlAab  = x; }));
+                    listTask.Add(UploadFileInternal(zipFilePath, versionFolder, service, ZipFile, (x) => { zipFile = x; }));
+                }
+
+                await Task.WhenAll(listTask);
+                listTask.Clear();
+                var list = new List<string> { $"https://drive.google.com/drive/folders/{folderId}" };
+
+                if (!string.IsNullOrEmpty(urlApk))
+                {
+                    list.Add(urlApk);
+                }
+
+                if (!string.IsNullOrEmpty(urlAab))
+                {
+                    list.Add(urlAab);
+                }
+
+                if (!string.IsNullOrEmpty(zipFile)) list.Add(zipFile);
+
+                System.IO.File.WriteAllText($"{CommonServicesHelper.GetPathInformation("googleInfo.txt")}", string.Join(",", list));
             }
-
-            if (!System.IO.File.Exists(aabFilePath) && buildAndroidInformation.data.BuildAppBundle())
+            catch (Exception e)
             {
-                throw new Exception("Aab File not found");
+                CommonServicesHelper.LogMessage($"Upload Failed: {e.Message}");
             }
-
-            var service = await CommonServicesHelper.GetDriveServices(buildAndroidInformation.data.IsUseServicesAccount());
-
-            //read from file
-            var folderId = System.IO.File.ReadAllText($"{CommonServicesHelper.GetPathInformation("uploadInfo.txt")}");
-            //BuildEnvironment
-            var environmentFolder = await CreateFolder(buildAndroidInformation.data.buildEnvironment, folderId, service);
-
-            //create platform folder
-            var platFormFolder = await CreateFolder("Android", environmentFolder, service);
-
-            //Create VersionFolder
-            var versionFolder = await CreateFolder($"{outputFileName}", platFormFolder, service);
-
-            listTask = new List<Task>();
-            var urlApk  = "";
-            var urlAab  = "";
-            var zipFile = "";
-            listTask.Add(UploadFileInternal(apkFilePath, versionFolder, service, ApkFile, (x) => { urlApk = x; }));
-
-            if (buildAndroidInformation.data.BuildAppBundle())
+            finally
             {
-                listTask.Add(UploadFileInternal(aabFilePath, versionFolder, service, ApkFile, (x) => { urlAab  = x; }));
-                listTask.Add(UploadFileInternal(zipFilePath, versionFolder, service, ZipFile, (x) => { zipFile = x; }));
-            }
-
-            await Task.WhenAll(listTask);
-            listTask.Clear();
-            var list = new List<string> { $"https://drive.google.com/drive/folders/{folderId}" };
-
-            if (!string.IsNullOrEmpty(urlApk))
-            {
-                list.Add(urlApk);
-            }
-
-            if (!string.IsNullOrEmpty(urlAab))
-            {
-                list.Add(urlAab);
-            }
-
-            if (!string.IsNullOrEmpty(zipFile)) list.Add(zipFile);
-
-            System.IO.File.WriteAllText($"{CommonServicesHelper.GetPathInformation("googleInfo.txt")}", string.Join(",", list));
-
-            if (isBatchMode)
-            {
-                EditorApplication.Exit(0);
+                if (isBatchMode)
+                {
+                    EditorApplication.Exit(0);
+                }
             }
         }
 
         static async Task<string> CreateFolder(string folderName, string parentFolder, DriveService service)
         {
-            var folderToDelete = FindFolder(service, parentFolder, folderName);
+            CommonServicesHelper.LogMessage($"Start Create folder {folderName} in {parentFolder}");
 
-            if (folderToDelete != null)
+            try
             {
-                return folderToDelete.Id;
+                var folderToDelete = FindFolder(service, parentFolder, folderName);
+
+                if (folderToDelete != null)
+                {
+                    CommonServicesHelper.LogMessage($"Folder already exists: {folderToDelete.Id}");
+                    return folderToDelete.Id;
+                }
+
+                var fileMetadata = new File()
+                {
+                    Name     = folderName,
+                    MimeType = "application/vnd.google-apps.folder",
+                    Parents  = new List<string>() { parentFolder }
+                };
+
+                var request = service.Files.Create(fileMetadata);
+                request.SupportsAllDrives = true;
+                request.Fields            = "id";
+
+                var file = await request.ExecuteAsync();
+
+                CommonServicesHelper.LogMessage("Folder created ID: " + file.Id);
+                return file.Id;
             }
-
-            var fileMetadata = new File()
+            catch (Google.GoogleApiException gex)
             {
-                Name     = folderName,
-                MimeType = "application/vnd.google-apps.folder",
-                Parents  = new List<string>() { parentFolder }
-            };
-
-            var request = service.Files.Create(fileMetadata);
-            request.SupportsAllDrives = true;
-            request.Fields            = "id";
-            var file = await request.ExecuteAsync();
-            Console.WriteLine("Folder ID: " + file.Id);
-            // await ShareWriter(service, file.Id, OwnerPermission.Keys.First());
-
-            return file.Id;
+                CommonServicesHelper.LogMessage($"Google API Error: {gex.Error?.Message} ({gex.Error?.Code})");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                CommonServicesHelper.LogMessage($"Unexpected error: {ex.Message}");
+                throw;
+            }
         }
+
 
         private static async void ShareWriter(DriveService service, string folderId, string userEmail)
         {
@@ -241,7 +280,7 @@
             request.SupportsAllDrives = true;
 
             await request.ExecuteAsync();
-            Console.WriteLine($"Ownership transferred to {userEmail}.");
+            CommonServicesHelper.LogMessage($"Ownership transferred to {userEmail}.");
         }
 
         static File FindFolder(DriveService service, string parentFolder, string folderName)
@@ -266,39 +305,54 @@
             service.Files.Delete(folderId).Execute();
         }
 
-        private static async Task UploadFileInternal(string apkFilePath, string folderId, DriveService service, string contentType, Action<string> onComplete)
+        private static async Task UploadFileInternal(string filePath, string folderId, DriveService service, string contentType, Action<string> onComplete)
         {
+            var fileInfo = new FileInfo(filePath);
+
             var fileMetadata = new File()
             {
-                Name    = Path.GetFileName(apkFilePath),
+                Name    = Path.GetFileName(filePath),
                 Parents = new List<string> { folderId }
             };
 
-            FilesResource.CreateMediaUpload request;
-
-            var stream = new FileStream(apkFilePath, FileMode.Open);
-            request = service.Files.Create(fileMetadata, stream, contentType);
-
-            request.Fields            = "id";
-            request.SupportsAllDrives = true;
-            var progress = await request.UploadAsync();
-            var file     = request.ResponseBody;
-
-            switch (progress.Status)
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                case UploadStatus.Failed:
-                    Console.WriteLine($"Upload failed {progress.Exception}");
+                var request = service.Files.Create(fileMetadata, stream, contentType);
+                request.Fields            = "id";
+                request.SupportsAllDrives = true;
 
-                    throw progress.Exception;
-                case UploadStatus.Completed:
-                    var fileId = request.ResponseBody.Id;
-                    Console.WriteLine($"File uploaded successfully. File ID: {fileId}");
+                // Set chunk size để tránh bị timeout
+                request.ChunkSize = GetOptimalChunkSize(fileInfo.Length);
+                CommonServicesHelper.LogMessage("Uploading file: " + fileMetadata.Name);
+                var progress = await request.UploadAsync();
 
-                    break;
+                if (progress.Status == UploadStatus.Failed)
+                {
+                    CommonServicesHelper.LogMessage($"Upload failed: {progress.Exception.Message}");
+                }
+
+                if (progress.Status == UploadStatus.Completed)
+                {
+                    var fileId  = request.ResponseBody.Id;
+                    var urlFile = $"https://drive.google.com/uc?export=download&id={fileId}";
+                    onComplete(urlFile);
+                    CommonServicesHelper.LogMessage($"Upload complete: {urlFile}");
+                }
             }
+        }
+        
+        private static int GetOptimalChunkSize(long fileSize)
+        {
+            const int minChunk = ResumableUpload.MinimumChunkSize; 
 
-            var urlFile = $"https://drive.google.com/uc?export=download&id={file.Id}";
-            onComplete(urlFile);
+            if (fileSize <= 10 * 1024 * 1024) // < 10MB
+                return minChunk * 16; // 4MB
+            else if (fileSize <= 200 * 1024 * 1024) // < 200MB
+                return minChunk * 64; // 16MB
+            else if (fileSize <= 1024 * 1024 * 1024) // < 1GB
+                return minChunk * 128; // 32MB
+            else
+                return minChunk * 256; // 64MB 
         }
     }
 }

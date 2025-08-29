@@ -115,7 +115,8 @@
 
             var service = new DriveService(new BaseClientService.Initializer
             {
-                HttpClientInitializer = cr
+                HttpClientInitializer = cr,
+                HttpClientFactory = new CustomClientFactory()
             });
 
             return service;
@@ -153,6 +154,7 @@
             {
                 HttpClientInitializer = credential,
                 ApplicationName       = "JenkinsBuild",
+                HttpClientFactory = new CustomClientFactory()
             }));
         }
 

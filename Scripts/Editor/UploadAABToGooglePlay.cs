@@ -38,7 +38,8 @@ namespace BuildHelper.Workflows
                 var service = new AndroidPublisherService(new BaseClientService.Initializer
                 {
                     HttpClientInitializer = credential,
-                    ApplicationName       = "Google Play Upload"
+                    ApplicationName       = "Google Play Upload",
+                    HttpClientFactory = new CustomClientFactory()
                 });
 
                 var editRequest = service.Edits.Insert(new Google.Apis.AndroidPublisher.v3.Data.AppEdit(), packageName);

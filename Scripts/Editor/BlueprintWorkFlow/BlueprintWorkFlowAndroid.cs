@@ -355,6 +355,7 @@ namespace BuildHelper.Workflows
             {
                 HttpClientInitializer = credential,
                 ApplicationName       = "UnityGoogleSheet",
+                HttpClientFactory = new CustomClientFactory()
             });
 
             return getSheetsService;

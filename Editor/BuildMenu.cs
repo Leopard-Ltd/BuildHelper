@@ -39,17 +39,17 @@ public static class BuildMenu
     static void BlueprintWorkFlowWebGL() { BuildCmd.BlueprintWorkFlowWebgl(); }
 
     [MenuItem("BuildScripts/UploadGoogleAndroid")]
-    static void UploadGoogleDriveAndroidPlatform() { UploadBuild.UploadGoogleDriveAndroidPlatform(); }
+    static void UploadGoogleDriveAndroidPlatform() { UploadBuild.UploadGoogleDriveAndroidPlatform().GetAwaiter().GetResult(); }
 
     [MenuItem("BuildScripts/UploadGoogleIos")]
-    static void UploadGoogleDriveIosPlatform() { UploadBuild.UploadGoogleDriveIosPlatform(); }
+    static void UploadGoogleDriveIosPlatform() { UploadBuild.UploadGoogleDriveIosPlatform().GetAwaiter().GetResult(); }
 
     [MenuItem("BuildScripts/UploadGoogleWebGL")]
-    static void UploadGoogleDriveWebGlPlatForm() { UploadBuild.UploadGoogleDriveWebGlPlatForm(); }
+    static void UploadGoogleDriveWebGlPlatForm() { UploadBuild.UploadGoogleDriveWebGlPlatForm().GetAwaiter().GetResult(); }
 
     [MenuItem("BuildScripts/UploadTelegramWebgl")]
     static void UploadWebGl() { UploadBuildTelegram.UploadWebGl(); }
 
     [MenuItem("BuildScripts/Upload CCD")]
-    static void ProcessCcd() { UnityCCD.ProcessCcd(); }
+    static void ProcessCcd() { UnityCCD.ProcessCcd().GetAwaiter().GetResult(); }
 }
