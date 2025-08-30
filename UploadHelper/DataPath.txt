@@ -1,2 +1,0 @@
-D:/Work/UnityProject/BuildJenkins/UnityBuildJenkins/Assets
-C:/Users/hoang/AppData/LocalLow/DefaultCompany/BuildJenkins

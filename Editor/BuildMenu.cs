@@ -6,14 +6,18 @@ using UnityEngine;
 
 public static class BuildMenu
 {
-    [MenuItem("BuildScripts/Export Data To UpLoad")]
+    [MenuItem("BuildScripts/Export DataPath", priority = 99)]
     static void ExportDataPath()
     {
         var path             = "";
         path += $"{Application.dataPath}\n";
         path += $"{Application.persistentDataPath}\n";
-        var uploadHelper = $"{Application.dataPath.Replace("Assets", "Packages/BuildHelper/UploadHelper")}";
-        File.WriteAllTextAsync($"{uploadHelper}/DataPath.txt", path);
+        
+        var buildPath = CommonServicesHelper.GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var parent     = Path.GetDirectoryName(buildPath);
+        var configPath = Path.Combine(parent, "Configs");
+        
+        File.WriteAllTextAsync($"{configPath}/DataPath.txt", path);
     }
 
     static void SwitchPlatform()

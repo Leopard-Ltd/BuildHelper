@@ -13,6 +13,7 @@ namespace BuildHelper.Workflows
         public static async void ExportDll()
         {
             var sourLibs     = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/Libs/";
+            var sourceUpload = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/UploadHelper/";
             var localGitPath = await CloneProject();
             var outputPath   = $"{localGitPath}/Editor";
             var assemblyName = "BuildHelper";
@@ -27,6 +28,7 @@ namespace BuildHelper.Workflows
             }
 
             CopyAllFolderToTargetFolder(sourLibs, $"{localGitPath}/Libs");
+            CopyAllFolderToTargetFolder(sourceUpload, $"{localGitPath}/UploadHelper");
 
             foreach (var asm in assemblies)
             {
@@ -55,6 +57,10 @@ namespace BuildHelper.Workflows
 
         private static void CopyAllFolderToTargetFolder(string sourceFolder, string targetFolder)
         {
+            if (!Directory.Exists(targetFolder))
+            {
+                Directory.CreateDirectory(targetFolder);
+            }
             foreach (var file in Directory.GetFiles(sourceFolder))
             {
                 var fileName     = Path.GetFileName(file);
