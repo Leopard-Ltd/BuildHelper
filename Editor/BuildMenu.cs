@@ -1,9 +1,29 @@
+using System.IO;
 using BuildHelper.Workflows;
 using UnityEditor;
+using UnityEngine;
 
 public static class BuildMenu
 {
-    static void SwitchPlatform() { BuildCmd.SwitchPlatform(); }
+    [MenuItem("BuildScripts/Export DataPath", priority = 99)]
+    static void ExportDataPath()
+    {
+        var path             = "";
+        path += $"{Application.dataPath}\n";
+        path += $"{Application.persistentDataPath}\n";
+        
+        var buildPath  = CommonServicesHelper.GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var parent     = Path.GetDirectoryName(buildPath);
+        var configPath = Path.Combine(parent, "Configs");
+        
+        File.WriteAllTextAsync($"{configPath}/DataPath.txt", path);
+    }
+
+    static void SwitchPlatform()
+    {
+        ExportDataPath();
+        BuildCmd.SwitchPlatform();
+    }
 
     [MenuItem("BuildScripts/SetBlueprintPath")]
     static void SetBlueprintDataPath() { BuildCmd.SetBlueprintDataPath(); }
