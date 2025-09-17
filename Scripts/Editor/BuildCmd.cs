@@ -124,6 +124,7 @@ namespace BuildHelper.Workflows
 
         static async Task TryRunSyncDataBatchModeAsync()
         {
+            CommonServicesHelper.LogMessage($"Auto Sync Data enable, disable add : DISABLE_AUTO_SYNC_DATA");
 #if DISABLE_AUTO_SYNC_DATA
         return;
 #endif
