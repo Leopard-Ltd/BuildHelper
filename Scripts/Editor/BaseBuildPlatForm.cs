@@ -126,7 +126,7 @@ namespace BuildHelper.Workflows
 #endif
         }
 
-        private void BuildAddressable(IBuildInformation data)
+        protected virtual void BuildAddressable(IBuildInformation data)
         {
 #if ADDRESSABLE
             var settings = AddressableAssetSettingsDefaultObject.Settings;

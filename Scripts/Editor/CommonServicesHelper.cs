@@ -205,11 +205,7 @@
 
         public static bool IsBatchMode()
         {
-            var args        = Environment.GetCommandLineArgs().ToList();
-            var isBatchMode = args.Contains("-batchmode");
-            //LogMessage($"Command Line Ne {string.Join(",", args)}, {isBatchMode}");
-
-            return isBatchMode;
+            return Application.isBatchMode;
         }
 
         public static void LogMessage(object message)

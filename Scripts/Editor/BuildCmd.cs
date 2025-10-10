@@ -120,6 +120,66 @@ namespace BuildHelper.Workflows
             }
         }
 
+        public static async void ExportAndroidProject()
+        {
+#if UNITY_ANDROID
+            var data        = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
+            
+            var isBatchMode = CommonServicesHelper.IsBatchMode();
+
+            if (data == null)
+            {
+                Console.WriteLine("No data model found");
+
+                throw new Exception("No data model found");
+            }
+
+            try
+            {
+                await TryRunSyncDataBatchModeAsync();
+                var buildAndroidPlatForm = new ExportAndroidPlatForm();
+                await buildAndroidPlatForm.SetUpAndBuild(data);
+
+                OnAfterExecute(isBatchMode, () =>
+                {
+                    var folderPath = Path.GetFullPath($"../Build/Client/Android/");
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        // Windows
+                        Process.Start("explorer.exe", folderPath);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        // macOS
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName        = "open",
+                            Arguments       = folderPath,
+                            UseShellExecute = true
+                        });
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        // Linux
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName        = "xdg-open",
+                            Arguments       = folderPath,
+                            UseShellExecute = true
+                        });
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+
+                throw;
+            }
+#endif
+        }
+
         public static void TryRunSyncData() { _ = TryRunSyncDataBatchModeAsync(); }
 
         static async Task TryRunSyncDataBatchModeAsync()

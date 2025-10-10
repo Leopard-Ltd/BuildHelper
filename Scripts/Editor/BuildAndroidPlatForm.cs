@@ -4,10 +4,13 @@ namespace BuildHelper.Workflows
     using System;
     using System.IO;
     using System.Threading.Tasks;
+    using Unity.Android.Types;
     using UnityEditor;
+    using UnityEditor.Android;
     using UnityEditor.Build;
     using UnityEditor.Build.Reporting;
     using UnityEngine;
+    using AndroidArchitecture = UnityEditor.AndroidArchitecture;
 
     public class BuildAndroidPlatForm : BaseBuildPlatForm
     {
@@ -18,7 +21,7 @@ namespace BuildHelper.Workflows
             var data = (BuildAndroidInformation)baseData;
             this.SetPassword(data);
             await base.SetUpAndBuild(data);
-
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
             if (!string.IsNullOrEmpty(data.data.productName))
             {
                 PlayerSettings.productName = data.data.productName;
@@ -78,17 +81,16 @@ namespace BuildHelper.Workflows
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.FromBuildTargetGroup(BuildTargetGroup.Android), bundleId);
 
 #if UNITY_6000_0_OR_NEWER
-            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = data.data.BuildAppBundle() ? Unity.Android.Types.DebugSymbolLevel.Full : Unity.Android.Types.DebugSymbolLevel.None;
+            UserBuildSettings.DebugSymbols.level = data.data.BuildAppBundle() ? DebugSymbolLevel.Full : DebugSymbolLevel.None;
 #else
-        EditorUserBuildSettings.androidCreateSymbols = data.androidInformation.BuildAppBundle() ? AndroidCreateSymbols.Debugging : AndroidCreateSymbols.Disabled;
+             EditorUserBuildSettings.androidCreateSymbols = data.androidInformation.BuildAppBundle() ? AndroidCreateSymbols.Debugging : AndroidCreateSymbols.Disabled;
 #endif
             PlayerSettings.Android.bundleVersionCode = int.Parse(data.data.buildNumber);
             this.SetDefaultSetting(data);
 
             //Build
             this.PreprocessBuild(data);
-            var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
-            BuildCmd.WriteReport(buildResult);
+            var buildResult = this.ExecuteBuild(buildPlayerOptions);
             errors = errors || buildResult.summary.result != BuildResult.Succeeded;
             Console.WriteLine(errors ? "*** Built Android Failed ***" : "Built android successfully!");
 
@@ -102,6 +104,14 @@ namespace BuildHelper.Workflows
             await this.AfterBuild(data);
         }
 
+        
+        protected virtual BuildReport ExecuteBuild(BuildPlayerOptions options)
+        {
+            var buildResult = BuildPipeline.BuildPlayer(options);
+            BuildCmd.WriteReport(buildResult);
+            return buildResult;
+        }
+        
         private void SetDefaultSetting(BuildAndroidInformation data)
         {
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;

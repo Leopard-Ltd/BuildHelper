@@ -16,7 +16,7 @@
     "splitBinary": "true",
     "scriptingBackend": "il2cpp",
     "scriptDefinition": "",
-    "outputFileName": "projectTemplate",
+    "outputFileName": "projectTemplate-0",
     "buildNumber": "1",
     "optimizeSizeBuild": "true",
     "isBuildDevelopment": "false",

@@ -8,14 +8,14 @@ public static class BuildMenu
     [MenuItem("BuildScripts/Export DataPath", priority = 99)]
     static void ExportDataPath()
     {
-        var path             = "";
+        var path = "";
         path += $"{Application.dataPath}\n";
         path += $"{Application.persistentDataPath}\n";
-        
+
         var buildPath  = CommonServicesHelper.GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var parent     = Path.GetDirectoryName(buildPath);
         var configPath = Path.Combine(parent, "Configs");
-        
+
         File.WriteAllTextAsync($"{configPath}/DataPath.txt", path);
     }
 
@@ -24,6 +24,9 @@ public static class BuildMenu
         ExportDataPath();
         BuildCmd.SwitchPlatform();
     }
+
+    [MenuItem("BuildScripts/ExportAndroidProject")]
+    static void ExportAndroidProject() { BuildCmd.ExportAndroidProject(); }
 
     [MenuItem("BuildScripts/SetBlueprintPath")]
     static void SetBlueprintDataPath() { BuildCmd.SetBlueprintDataPath(); }

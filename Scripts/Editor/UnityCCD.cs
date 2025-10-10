@@ -18,6 +18,9 @@ namespace BuildHelper.Workflows
     {
         public static async Task ProcessCcd()
         {
+#if !ADDRESSABLE
+            return;
+#endif
             var data = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
 
             if (string.IsNullOrEmpty(data.CCdInfo))
