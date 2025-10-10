@@ -124,7 +124,8 @@ namespace BuildHelper.Workflows
         {
 #if UNITY_ANDROID
             var data        = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
-            
+            // var jsonfile    = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/SampleConfig/AndroidInformation.json";
+            // var data        = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(jsonfile);
             var isBatchMode = CommonServicesHelper.IsBatchMode();
 
             if (data == null)

@@ -1,5 +1,7 @@
 ﻿namespace BuildHelper.Workflows
 {
+    using System.IO;
+    using System.IO.Compression;
     using UnityEditor;
     using UnityEditor.Build.Reporting;
 
@@ -22,7 +24,15 @@
             BuildCmd.WriteReport(report);
             
             CommonServicesHelper.LogMessage("[ExportAndroidPlatForm] Export complete!");
+            string exportFolder = options.locationPathName;
+            string zipPath      = exportFolder + ".zip";
 
+            if (File.Exists(zipPath))
+                File.Delete(zipPath);
+
+            ZipFile.CreateFromDirectory(exportFolder, zipPath, CompressionLevel.Optimal, includeBaseDirectory: false);
+
+            CommonServicesHelper.LogMessage($"[ExportAndroidPlatForm] Zip created: {zipPath}");
             return report;
         }
     }
