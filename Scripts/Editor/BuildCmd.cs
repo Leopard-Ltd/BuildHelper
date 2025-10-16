@@ -123,14 +123,14 @@ namespace BuildHelper.Workflows
         public static async void ExportAndroidProject()
         {
 #if UNITY_ANDROID
-            var data        = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
+            var data = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(CommonServicesHelper.GetPathInformation("AndroidInformation.json"));
             // var jsonfile    = $"{CommonServicesHelper.GetProjectPath()}/Packages/BuildHelper/SampleConfig/AndroidInformation.json";
             // var data        = CommonServicesHelper.GetDataModel<BuildAndroidInformation>(jsonfile);
             var isBatchMode = CommonServicesHelper.IsBatchMode();
 
             if (data == null)
             {
-                Console.WriteLine("No data model found");
+                CommonServicesHelper.LogMessage("No data model found");
 
                 throw new Exception("No data model found");
             }
@@ -174,7 +174,7 @@ namespace BuildHelper.Workflows
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                CommonServicesHelper.LogMessage(e);
 
                 throw;
             }
@@ -223,7 +223,7 @@ namespace BuildHelper.Workflows
 
             if (data == null)
             {
-                Console.WriteLine("No data model found");
+                CommonServicesHelper.LogMessage("No data model found");
 
                 throw new Exception("No data model found");
             }
@@ -267,7 +267,7 @@ namespace BuildHelper.Workflows
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                CommonServicesHelper.LogMessage(e);
 
                 throw;
             }
@@ -281,7 +281,7 @@ namespace BuildHelper.Workflows
 
             if (data == null)
             {
-                Console.WriteLine("No data model found");
+                CommonServicesHelper.LogMessage("No data model found");
 
                 throw new Exception("No data model found");
             }
@@ -296,7 +296,7 @@ namespace BuildHelper.Workflows
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            CommonServicesHelper.LogMessage(e);
 
             throw;
         }
@@ -310,7 +310,7 @@ namespace BuildHelper.Workflows
 
             if (data == null)
             {
-                Console.WriteLine("No data model found");
+                CommonServicesHelper.LogMessage("No data model found");
 
                 throw new Exception("No data model found");
             }
@@ -328,7 +328,7 @@ namespace BuildHelper.Workflows
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                CommonServicesHelper.LogMessage(e);
 
                 throw;
             }

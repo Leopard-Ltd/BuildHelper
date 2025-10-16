@@ -83,7 +83,6 @@
             return output;
         }
 
-
         private static Task WaitForExitAsync(Process process)
         {
             var tcs = new TaskCompletionSource<object>();
@@ -116,7 +115,7 @@
             var service = new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = cr,
-                HttpClientFactory = new CustomClientFactory()
+                HttpClientFactory     = new CustomClientFactory()
             });
 
             return service;
@@ -154,7 +153,7 @@
             {
                 HttpClientInitializer = credential,
                 ApplicationName       = "JenkinsBuild",
-                HttpClientFactory = new CustomClientFactory()
+                HttpClientFactory     = new CustomClientFactory()
             }));
         }
 
@@ -193,6 +192,13 @@
 
         public static T GetDataModel<T>(string filePath) where T : class
         {
+            if (!File.Exists(filePath))
+            {
+                LogMessage($"File '{filePath}' does not exist.");
+
+                return null;
+            }
+
             T data = null;
 
             var fileContents = File.ReadAllText(filePath, Encoding.UTF8);
@@ -203,10 +209,7 @@
             return data;
         }
 
-        public static bool IsBatchMode()
-        {
-            return Application.isBatchMode;
-        }
+        public static bool IsBatchMode() { return Application.isBatchMode; }
 
         public static void LogMessage(object message)
         {
