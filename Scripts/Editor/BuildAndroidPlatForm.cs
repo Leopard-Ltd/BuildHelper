@@ -22,6 +22,7 @@ namespace BuildHelper.Workflows
             this.SetPassword(data);
             await base.SetUpAndBuild(data);
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+
             if (!string.IsNullOrEmpty(data.data.productName))
             {
                 PlayerSettings.productName = data.data.productName;
@@ -104,14 +105,14 @@ namespace BuildHelper.Workflows
             await this.AfterBuild(data);
         }
 
-        
         protected virtual BuildReport ExecuteBuild(BuildPlayerOptions options)
         {
             var buildResult = BuildPipeline.BuildPlayer(options);
             BuildCmd.WriteReport(buildResult);
+
             return buildResult;
         }
-        
+
         private void SetDefaultSetting(BuildAndroidInformation data)
         {
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7 | AndroidArchitecture.ARM64;
@@ -139,14 +140,20 @@ namespace BuildHelper.Workflows
 
         private void SetPassword(BuildAndroidInformation data)
         {
-            var filePath  = $"{data.data.keyName}";
-            var finalPath = $"{CommonServicesHelper.GetProjectPath()}/keys/{filePath}";
+            var fileName = data.data.keyName;
+
+            if (!fileName.EndsWith(".keystore", StringComparison.OrdinalIgnoreCase))
+            {
+                fileName += ".keystore";
+            }
+
+            var finalPath = $"{CommonServicesHelper.GetProjectPath()}/keys/{fileName}";
 
             if (!string.IsNullOrEmpty(data.data.keystorePath))
             {
                 var tmp = data.data.keystorePath;
-                tmp       = tmp.EndsWith("/") ? tmp : tmp + "/";
-                finalPath = $"{tmp}{data.data.keyName}";
+                tmp       = tmp.EndsWith("/") || tmp.EndsWith("\\") ? tmp : tmp + "/";
+                finalPath = $"{tmp}{fileName}";
             }
 
             PlayerSettings.Android.useCustomKeystore = true;
