@@ -134,7 +134,7 @@ namespace BuildHelper.Workflows
 #if UNITY_6000_0_OR_NEWER
             PlayerSettings.Android.splitApplicationBinary = data.data.IsSplitBinary() && data.data.BuildAppBundle();
 #else
-        PlayerSettings.Android.useAPKExpansionFiles = data.androidInformation.IsSplitBinary();
+             PlayerSettings.Android.useAPKExpansionFiles = data.androidInformation.IsSplitBinary();
 #endif
         }
 
