@@ -16,13 +16,15 @@ namespace BuildHelper.Workflows
     {
         private static string bundleId = Application.identifier;
 
+       
+
         public override async Task SetUpAndBuild(IBuildInformation baseData)
         {
             var data = (BuildAndroidInformation)baseData;
             this.SetPassword(data);
             await base.SetUpAndBuild(data);
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
-
+            this.SetOrientation(data.IsLandScape);
             if (!string.IsNullOrEmpty(data.data.productName))
             {
                 PlayerSettings.productName = data.data.productName;

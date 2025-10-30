@@ -14,6 +14,7 @@
         public bool   clearCachedCredentials = false;
         public string useServicesAccount     = "true";
         public bool   stripCode              = true;
+        public bool   IsLandScape;
 
         public bool IsUseServicesAccount() { return this.useServicesAccount.Equals("true"); }
         public bool clearCached = false;

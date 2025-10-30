@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using BuildHelper.Workflows;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -14,6 +15,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
     {
         await base.SetUpAndBuild(baseData);
         var data = (BuildWebGlInformation)baseData;
+        this.SetOrientation(data.IsLandScape);
 
         if (data.data.stripCode)
         {
@@ -38,7 +40,7 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
             scenes           = this.LoadSceneOnPath(),
             target           = BuildTarget.WebGL,
             options          = BuildOptions.None,
-            locationPathName = $"{CommonServices.GetBuildPath(data.data.outputFileName, "webgl")}",
+            locationPathName = $"{CommonServicesHelper.GetBuildPath(data.data.outputFileName, "webgl")}",
             targetGroup      = BuildTargetGroup.WebGL
         };
 
@@ -52,8 +54,8 @@ public class BuildWebGlPlatForm : BaseBuildPlatForm
 
         await this.AfterBuild(data);
         BuildCmd.WriteReport(buildResult);
-        CommonServices.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
-        CommonServices.LogMessage("Build Webgl Done");
+        CommonServicesHelper.LogMessage(buildResult.summary.result != BuildResult.Succeeded ? "Build failed" : "Build succeeded");
+        CommonServicesHelper.LogMessage("Build Webgl Done");
     }
 
     protected override void SetAllGroupsToLZMA() { }

@@ -35,6 +35,29 @@ namespace BuildHelper.Workflows
             EditorUserBuildSettings.development = data.IsDevelopment();
         }
 
+        protected void SetOrientation(bool lanscape)
+        {
+#if UNITY_ANDROID || UNITY_IOS
+
+            if (lanscape)
+            {
+                PlayerSettings.defaultInterfaceOrientation           = UIOrientation.LandscapeLeft;
+                PlayerSettings.allowedAutorotateToLandscapeLeft      = true;
+                PlayerSettings.allowedAutorotateToLandscapeRight     = true;
+                PlayerSettings.allowedAutorotateToPortrait           = false;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            }
+            else
+            {
+                PlayerSettings.defaultInterfaceOrientation           = UIOrientation.Portrait;
+                PlayerSettings.allowedAutorotateToLandscapeLeft      = false;
+                PlayerSettings.allowedAutorotateToLandscapeRight     = false;
+                PlayerSettings.allowedAutorotateToPortrait           = true;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = true;
+            }
+#endif
+        }
+
         protected virtual void TryDisableLogo()
         {
             try

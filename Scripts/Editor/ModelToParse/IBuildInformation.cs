@@ -9,5 +9,6 @@
         public string TelegramWorker { get; }
         string        CCdInfo        { get; }
         bool          clearCached    { get; }
+        public bool   IsLandScape    { get; }
     }
 }

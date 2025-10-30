@@ -20,6 +20,7 @@
                 PlayerSettings.productName = data.data.productName;
             }
 
+            this.SetOrientation(data.IsLandScape);
             EditorUserBuildSettings.connectProfiler = data.data.IsDevelopment();
 
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, data.data.bundleIdentifier);
@@ -48,12 +49,10 @@
 
             if (data.data.customVersion.IsAutoVersion())
             {
-
                 if (!PlayerSettings.bundleVersion.EndsWith($"{data.data.buildNumber}"))
                 {
                     PlayerSettings.bundleVersion = $"{PlayerSettings.bundleVersion}.{data.data.buildNumber}";
                 }
-
             }
 
             var appMetadata = Application.identifier + ",";

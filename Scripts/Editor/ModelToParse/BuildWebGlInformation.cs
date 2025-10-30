@@ -14,6 +14,7 @@
         public string TelegramWorker  => this.data.telegramWorker;
         public string CCdInfo         => this.data.ccdInfo;
         public bool   clearCached     => this.data.clearCached;
+        public bool   IsLandScape     => this.data.IsLandScape;
     }
 
     [Serializable]
