@@ -4,11 +4,12 @@ namespace BuildHelper.Workflows
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using UnityEditor;
     using UnityEditor.Callbacks;
     using UnityEditor.iOS.Xcode;
-    using UnityEngine;
+    using Debug = UnityEngine.Debug;
 
     public class IOSPostProcessingBuildTool
     {
@@ -48,6 +49,8 @@ namespace BuildHelper.Workflows
                 SetPlistConfig(pathToBuiltProject);
                 SetProjectConfig(pathToBuiltProject);
                 SetupSandBox(pathToBuiltProject);
+                PatchPodfileForAppMetrica(pathToBuiltProject);
+                RunPodInstall(pathToBuiltProject);
                 CommonServicesHelper.LogMessage($"IOSPostProcessingBuildTool OnPostProcessBuild : {pathToBuiltProject}");
             }
             catch (Exception e)
@@ -240,7 +243,7 @@ namespace BuildHelper.Workflows
             pbxProject.AddFrameworkToProject(mainTargetGuid, "iAd.framework", false); // for Appsflyer tracking search ads
             pbxProject.AddFrameworkToProject(mainTargetGuid, "AdSupport.framework", false); // Add framework for (iron source mediation)
             pbxProject.AddBuildProperty(mainTargetGuid, "OTHER_LDFLAGS", "-lxml2"); // Add '-lxml2' of facebook to "Other Linker Flags"
-            pbxProject.SetBuildProperty(mainTargetGuid, "ARCHS", "arm64");
+            // pbxProject.SetBuildProperty(mainTargetGuid, "ARCHS", "arm64");
             // Disable Unity Framework Target
             pbxProject.SetBuildProperty(mainTargetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
             pbxProject.SetBuildProperty(testTargetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
@@ -264,6 +267,80 @@ namespace BuildHelper.Workflows
         }
 
         #endregion
+
+        private static void PatchPodfileForAppMetrica(string pathToBuiltProject)
+        {
+            var podfilePath = Path.Combine(pathToBuiltProject, "Podfile");
+
+            if (!File.Exists(podfilePath))
+            {
+                CommonServicesHelper.LogMessage("[YandexFix] Podfile not found. Nếu bạn dùng EDM4U/CocoaPods, hãy chắc có Podfile trong thư mục export.");
+
+                return;
+            }
+
+            var podfile = File.ReadAllText(podfilePath);
+
+            if (podfile.Contains("UNITY6000_3_APP_METRICA_FIX"))
+            {
+                CommonServicesHelper.LogMessage("[YandexFix] Podfile already patched.");
+
+                return;
+            }
+
+            var patch = @"
+
+# UNITY6000_3_APP_METRICA_FIX
+post_install do |installer|
+  problematic_targets = [
+    'AppMetricaLibraryAdapter',
+    'AppMetricaCore',
+    'AppMetricaCrashes',
+    'AppMetricaProtobuf'
+  ]
+
+  installer.pods_project.targets.each do |target|
+    next unless problematic_targets.include?(target.name)
+    target.build_configurations.each do |config|
+      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
+    end
+  end
+end
+";
+
+            File.WriteAllText(podfilePath, podfile + patch);
+            CommonServicesHelper.LogMessage("[YandexFix] Patched Podfile (AppMetrica BUILD_LIBRARY_FOR_DISTRIBUTION = NO).");
+        }
+
+        private static void RunPodInstall(string pathToBuiltProject)
+        {
+#if UNITY_EDITOR_OSX
+    try
+    {
+        var process = new Process();
+        process.StartInfo.FileName = "/bin/bash";
+        process.StartInfo.Arguments = "-lc \"pod install\"";
+        process.StartInfo.WorkingDirectory = pathToBuiltProject;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.CreateNoWindow = true;
+
+        process.Start();
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        CommonServicesHelper.LogMessage($"[YandexFix] pod install exit={process.ExitCode}\n{output}\n{error}");
+    }
+    catch (Exception e)
+    {
+        CommonServicesHelper.LogMessage("[YandexFix] Failed to run pod install: " + e);
+    }
+#else
+            CommonServicesHelper.LogMessage("[YandexFix] Skipped pod install (not on macOS Editor).");
+#endif
+        }
     }
 }
 
