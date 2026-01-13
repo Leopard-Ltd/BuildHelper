@@ -1,4 +1,4 @@
-﻿#if UNITY_IOS
+#if UNITY_IOS
 
 namespace BuildHelper.Workflows
 {
@@ -288,25 +288,23 @@ namespace BuildHelper.Workflows
                 return;
             }
 
-            var patch = @"
-
-# UNITY6000_3_APP_METRICA_FIX
-post_install do |installer|
-  problematic_targets = [
-    'AppMetricaLibraryAdapter',
-    'AppMetricaCore',
-    'AppMetricaCrashes',
-    'AppMetricaProtobuf'
-  ]
-
-  installer.pods_project.targets.each do |target|
-    next unless problematic_targets.include?(target.name)
-    target.build_configurations.each do |config|
-      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
-    end
-  end
-end
-";
+            var patch =
+                "\n\n" +
+                "# UNITY6000_3_APP_METRICA_FIX\n" +
+                "post_install do |installer|\n" +
+                "  problematic_targets = [\n" +
+                "    'AppMetricaLibraryAdapter',\n" +
+                "    'AppMetricaCore',\n" +
+                "    'AppMetricaCrashes',\n" +
+                "    'AppMetricaProtobuf'\n" +
+                "  ]\n\n" +
+                "  installer.pods_project.targets.each do |target|\n" +
+                "    next unless problematic_targets.include?(target.name)\n" +
+                "    target.build_configurations.each do |config|\n" +
+                "      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'\n" +
+                "    end\n" +
+                "  end\n" +
+                "end\n";
 
             File.WriteAllText(podfilePath, podfile + patch);
             CommonServicesHelper.LogMessage("[YandexFix] Patched Podfile (AppMetrica BUILD_LIBRARY_FOR_DISTRIBUTION = NO).");
