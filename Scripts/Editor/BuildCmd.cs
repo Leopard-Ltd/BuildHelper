@@ -81,6 +81,18 @@ namespace BuildHelper.Workflows
 #endif
         }
 
+        public static void ExportDataPath()
+        {
+            var path = "";
+            path += $"{Application.dataPath}\n";
+            path += $"{Application.persistentDataPath}\n";
+
+            var buildPath  = CommonServicesHelper.GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var parent     = Path.GetDirectoryName(buildPath);
+            var configPath = Path.Combine(parent, "Configs");
+
+            File.WriteAllTextAsync($"{configPath}/DataPath.txt", path);
+        }
         public static void SwitchPlatform()
         {
             var isBatchMode = CommonServicesHelper.IsBatchMode();
@@ -185,6 +197,7 @@ namespace BuildHelper.Workflows
 
         static async Task TryRunSyncDataBatchModeAsync()
         {
+            ExportDataPath();
             CommonServicesHelper.LogMessage($"Auto Sync Data enable, disable add : DISABLE_AUTO_SYNC_DATA");
 #if DISABLE_AUTO_SYNC_DATA
         return;

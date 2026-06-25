@@ -8,20 +8,11 @@ public static class BuildMenu
     [MenuItem("BuildScripts/Export DataPath", priority = 99)]
     public static void ExportDataPath()
     {
-        var path = "";
-        path += $"{Application.dataPath}\n";
-        path += $"{Application.persistentDataPath}\n";
-
-        var buildPath  = CommonServicesHelper.GetBuildPath().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var parent     = Path.GetDirectoryName(buildPath);
-        var configPath = Path.Combine(parent, "Configs");
-
-        File.WriteAllTextAsync($"{configPath}/DataPath.txt", path);
+        BuildCmd.ExportDataPath();
     }
 
     public static void SwitchPlatform()
     {
-        ExportDataPath();
         BuildCmd.SwitchPlatform();
     }
 
@@ -32,19 +23,19 @@ public static class BuildMenu
     public static void SetBlueprintDataPath() { BuildCmd.SetBlueprintDataPath(); }
 
     [MenuItem("BuildScripts/Build Android from Editor")]
-    public static void BuildAndroidOnEditor() {  BuildCmd.BuildAndroidOnEditor(); }
+    public static void BuildAndroidOnEditor() { BuildCmd.BuildAndroidOnEditor(); }
 
     [MenuItem("BuildScripts/TryRynSyncData")]
     public static void TryRunSyncData() { BuildCmd.TryRunSyncData(); }
 
     [MenuItem("BuildScripts/Build Android")]
-    public static void BuildAndroid() {BuildCmd.BuildAndroid(); }
+    public static void BuildAndroid() { BuildCmd.BuildAndroid(); }
 
     [MenuItem("BuildScripts/Build Ios")]
     public static void BuildIos() { BuildCmd.BuildIos(); }
 
     [MenuItem("BuildScripts/Build WebGl")]
-    public static void BuildWebGL() {  BuildCmd.BuildWebGL(); }
+    public static void BuildWebGL() { BuildCmd.BuildWebGL(); }
 
     [MenuItem("BuildScripts/UploadTestFlight")]
     public static void UploadTestFlight() { BuildCmd.UploadTestFlight(); }
@@ -53,10 +44,10 @@ public static class BuildMenu
     public static void UploadAAbToGooglePlay() { BuildCmd.UploadAAbToGooglePlay(); }
 
     [MenuItem("BuildScripts/ProcessBlueprintAndroid")]
-    public static void BlueprintWorkFlowAndroid() {  BuildCmd.BlueprintWorkFlowAndroid(); }
+    public static void BlueprintWorkFlowAndroid() { BuildCmd.BlueprintWorkFlowAndroid(); }
 
     [MenuItem("BuildScripts/ProcessBlueprintIos")]
-    public static void BlueprintWorkFlowIos() {BuildCmd.BlueprintWorkFlowIos(); }
+    public static void BlueprintWorkFlowIos() { BuildCmd.BlueprintWorkFlowIos(); }
 
     [MenuItem("BuildScripts/ProcessBlueprintWegbl")]
     public static void BlueprintWorkFlowWebGL() { BuildCmd.BlueprintWorkFlowWebgl(); }
