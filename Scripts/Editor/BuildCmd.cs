@@ -93,6 +93,7 @@ namespace BuildHelper.Workflows
 
             File.WriteAllTextAsync($"{configPath}/DataPath.txt", path);
         }
+
         public static void SwitchPlatform()
         {
             var isBatchMode = CommonServicesHelper.IsBatchMode();
@@ -226,6 +227,33 @@ namespace BuildHelper.Workflows
             }
 
             CommonServicesHelper.LogMessage("✅ Sync data completed successfully.");
+            await TryToRemoveSyncDataBatchModeClassAsync();
+        }
+
+        public static Task TryToRemoveSyncDataBatchModeClassAsync()
+        {
+           
+#if PRODUCTION||!BLUEPRINT_ONLINE
+            
+            var guids = AssetDatabase.FindAssets("SyncGoogleDriver");
+
+            foreach (var guid in guids)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                if (File.Exists(assetPath))
+                {
+                    CommonServicesHelper.LogMessage($"Deleting: {assetPath}");
+
+                    AssetDatabase.DeleteAsset(assetPath);
+                }
+            }
+
+            AssetDatabase.Refresh();
+
+            CommonServicesHelper.LogMessage("Delete Done.");
+#endif
+            return Task.CompletedTask;
         }
 
         public static async void BuildAndroid()
