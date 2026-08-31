@@ -7,6 +7,7 @@ namespace BuildHelper.Workflows
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using UnityEditor;
     using UnityEditor.Build;
@@ -32,7 +33,6 @@ namespace BuildHelper.Workflows
         public static void SetBlueprintDataPath()
         {
 #if UNITY_ANDROID
-
             var buildAndroidPlatForm = new BuildAndroidPlatForm();
             var data                 = new BuildAndroidInformation();
             buildAndroidPlatForm.SetupBlueprintPath(data);
@@ -232,9 +232,7 @@ namespace BuildHelper.Workflows
 
         public static Task TryToRemoveSyncDataBatchModeClassAsync()
         {
-           
 #if PRODUCTION||!BLUEPRINT_ONLINE
-            
             var guids = AssetDatabase.FindAssets("SyncGoogleDriver");
 
             foreach (var guid in guids)
@@ -359,12 +357,12 @@ namespace BuildHelper.Workflows
             try
             {
 #if UNITY_WEBGL
-            await TryRunSyncDataBatchModeAsync();   
-            var buildWebGlPlatForm = new BuildWebGlPlatForm();
+                await TryRunSyncDataBatchModeAsync();
+                var buildWebGlPlatForm = new BuildWebGlPlatForm();
 
-            buildWebGlPlatForm.SetUpAndBuild(data);
-
-            OnAfterExecute(isBatchMode);
+                buildWebGlPlatForm.SetUpAndBuild(data);
+                CheckToActiveFireBaseData();
+                OnAfterExecute(isBatchMode);
 #endif
             }
             catch (Exception e)
@@ -373,6 +371,51 @@ namespace BuildHelper.Workflows
 
                 throw;
             }
+        }
+
+        public static void CheckToActiveFireBaseData()
+        {
+#if !FIREBASE_WEBGL
+            return;
+#endif
+            var data = CommonServicesHelper.GetDataModel<BuildWebGlInformation>(CommonServicesHelper.GetPathInformation("WebGlInformation.json"));
+
+            var firebaseConfigPath = $"{Application.dataPath}/FirebaseWebglConfig.txt";
+
+            if (!File.Exists(firebaseConfigPath))
+            {
+                return;
+            }
+
+            var firebaseContent = File.ReadAllText(firebaseConfigPath);
+
+            var buildPath = CommonServicesHelper.GetBuildPath(
+                data.data.outputFileName,
+                "webgl");
+
+            var indexHtmlPath = $"{buildPath}/index.html";
+
+            if (!File.Exists(indexHtmlPath))
+            {
+                return;
+            }
+
+            var indexHtmlContent = File.ReadAllText(indexHtmlPath);
+
+            var pattern = @"const\s+firebaseConfig\s*=\s*\{[\s\S]*?\};";
+
+            var match = Regex.Match(indexHtmlContent, pattern);
+
+            if (!match.Success)
+            {
+                CommonServicesHelper.LogMessage("Firebase config not found.");
+
+                return;
+            }
+
+            indexHtmlContent = Regex.Replace(indexHtmlContent, pattern, _ => firebaseContent, RegexOptions.Multiline);
+
+            File.WriteAllText(indexHtmlPath, indexHtmlContent);
         }
 
         private static readonly List<BuildTargetInfo> Targets = new()
@@ -459,7 +502,6 @@ namespace BuildHelper.Workflows
         {
             var isBatchMode = CommonServicesHelper.IsBatchMode();
 #if UNITY_ANDROID
-
             UploadAABToGooglePlay.UploadAAb();
 #endif
 
@@ -488,7 +530,7 @@ namespace BuildHelper.Workflows
         {
             var isBatchMode = CommonServicesHelper.IsBatchMode();
 #if ADDRESSABLE && BLUEPRINT_WORKFLOW && UNITY_WEBGL
-        await new BlueprintWorkFlowWebGl().ProcessBlueprint();
+            await new BlueprintWorkFlowWebGl().ProcessBlueprint();
 #endif
             OnAfterExecute(isBatchMode);
         }
